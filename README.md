@@ -1,0 +1,2 @@
+# SSM
+Spark Streaming Manager
