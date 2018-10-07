@@ -1,8 +1,34 @@
 import React, { Component } from "react";
+import { Switch, Route } from "react-router-dom";
+import {
+	Home,
+	Apps,
+	FoP,
+	Metric,
+	Nodes,
+	Register,
+	Login,
+	NoMatch
+} from "./pages";
+import Header from "./Header";
 
 class App extends Component {
 	render() {
-		return <div>3Layered SSM</div>;
+		return (
+			<div>
+				<Header />
+				<Switch>
+					<Route exact path="/" component={Home} />
+					<Route exact path="/apps" component={Apps} />
+					<Route exact path="/fop" component={FoP} />
+					<Route exact path="/metric" component={Metric} />
+					<Route exact path="/nodes" component={Nodes} />
+					<Route exact path="/register" component={Register} />
+					<Route exact path="/login" component={Login} />
+					<Route component={NoMatch} />
+				</Switch>
+			</div>
+		);
 	}
 }
 
