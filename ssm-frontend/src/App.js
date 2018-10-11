@@ -8,7 +8,9 @@ import {
 	Nodes,
 	Register,
 	Login,
-	NoMatch
+	NoMatch,
+	AppDetail,
+	AttemptDetail
 } from "./pages";
 import Header from "./Header";
 
@@ -27,6 +29,8 @@ class App extends Component {
 				<Switch>
 					<Route exact path="/" component={Home} />
 					<Route exact path="/apps" component={Apps} />
+					<Route exact path="/apps/detail" component={AppDetail} />
+					<Route exact path="/apps/detail/attempt" component={AttemptDetail} />
 					<Route exact path="/fop" component={FoP} />
 					<Route exact path="/metric" component={AppList} />
                         <Route exact path="/metric/applications" component={AppList} />

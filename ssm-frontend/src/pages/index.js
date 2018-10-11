@@ -6,3 +6,5 @@ export { default as Nodes } from "./Nodes";
 export { default as Register } from "./Register";
 export { default as Login } from "./Login";
 export { default as NoMatch } from "./NoMatch";
+export { default as AppDetail } from "./AppDetail";
+export { default as AttemptDetail } from "./AttemptDetail";
