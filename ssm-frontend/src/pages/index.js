@@ -9,3 +9,4 @@ export { default as NoMatch } from "./NoMatch";
 export { default as AppDetail } from "./AppDetail";
 export { default as AttemptDetail } from "./AttemptDetail";
 export { default as Streaming } from "./Streaming";
+export { default as Directory } from "./Directory";

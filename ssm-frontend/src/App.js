@@ -11,7 +11,8 @@ import {
 	NoMatch,
 	AppDetail,
 	AttemptDetail,
-	Streaming
+	Streaming,
+	Directory
 } from "./pages";
 import Header from "./Header";
 
@@ -44,6 +45,7 @@ class App extends Component {
 					<Route exact path="/register" component={Register} />
 					<Route exact path="/login" component={Login} />
 					<Route exact path="/streaming" component={Streaming} />
+					<Route exact path="/directory" component={Directory} />
 					<Route component={NoMatch} />
 				</Switch>
 			</div>
