@@ -1,98 +1,109 @@
 import React, { Component } from "react"
-import { Container, List } from "semantic-ui-react"
+import { Container, List, Button } from "semantic-ui-react"
 import axios from "axios";
 
 class DirectoryList extends Component {
   constructor(props) {
 		super(props);
 		this.state = {};
-    axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*'
 		axios
 			.get(
-				"http://127.0.0.1:50070/webhdfs/v1/?op=LISTSTATUS"
+				"http://localhost:50070/webhdfs/v1/user/?op=LISTSTATUS"
 			)
 			.then(response => {
-				this.setState({'data': response.data});
+				this.setState({'tree':[{'parent': 'user', 'dirs':response.data.FileStatuses.FileStatus}]})
+        this.state.tree[0].dirs.map((dir, i) => {
+          this.toggle_dir(this.state.tree[0].parent+'/'+dir.pathSuffix)
+        })
 			})
 			.catch(error => {
-				alert(error);
+				alert('error');
+        console.log(error)
+        console.log(error.status)
+        console.log(error.code)
 			});
 	}
+  toggle_dir(path){
+    let exist = 0
+    for(var i = 0; i < this.state.tree.length; i++){
+      if (this.state.tree[i].parent.startsWith(path)) {
+        const tmp = this.state.tree
+        tmp.splice(i,1)
+        this.setState({
+          'tree': tmp
+        })
+        i--
+        exist = 1
+      }
+    }
+    if (exist === 1) return
+    axios
+			.get(
+				"http://localhost:50070/webhdfs/v1/"+path+"/?op=LISTSTATUS"
+			)
+			.then(response => {
+				  this.setState({
+            'tree':[...this.state.tree, {'parent': path, 'dirs':response.data.FileStatuses.FileStatus}]
+          })
+			})
+			.catch(error => {
+				alert('error');
+			});
+  }
+  find_dir(idx, parent){
+    console.log(this.state.tree)
+    if (typeof(this.state.tree) === 'undefined') {
+      return;
+    } else {
+      if ((this.state.tree[idx].parent === parent)) {
+        const {dirs} = this.state.tree[idx]
+        return(
+        <dir>{
+        dirs.map((dir, i) => {
+          if (dir.type === "DIRECTORY") {
+            return(
+              <List.Item key={i} >
+                <List.Icon name='folder' onClick={(e,i)=>this.toggle_dir(parent+'/'+dir.pathSuffix)} />
+                <List.Content>
+                  <List.Header>{dir.pathSuffix}</List.Header>
+                  <List.Description>owner : {dir.owner}</List.Description>
+                </List.Content>
+                <List.List>
+                  {
+                    this.state.tree.map((child_dir, j) => {
+                      if (j <= idx) return;
+                      else {
+                        return(
+                          this.find_dir(j, parent+'/'+dir.pathSuffix)
+                        )
+                      }
+                    })
+                  }
+                </List.List>
+              </List.Item>
+            )
+          } else if (dir.type === "FILE") {
+            return(
+              <List.Item key={i}>
+                <List.Icon name='file' />
+                <List.Content>
+                  <List.Header>{dir.pathSuffix}</List.Header>
+                  <List.Description>owner : {dir.owner}</List.Description>
+                </List.Content>
+              </List.Item>
+            )
+          }
+        })
+        }</dir>
+      )}
+    }
+  }
   render(){
+    console.log(typeof(this.state.tree))
     return(
       <Container>
         <List>
-          <List.Item>
-            <List.Icon name='folder' />
-            <List.Content>
-              <List.Header>src</List.Header>
-              <List.Description>Source files for project</List.Description>
-              <List.List>
-                <List.Item>
-                  <List.Icon name='folder' />
-                  <List.Content>
-                    <List.Header>site</List.Header>
-                    <List.Description>Your sites theme</List.Description>
-                  </List.Content>
-                </List.Item>
-                <List.Item>
-                  <List.Icon name='folder' />
-                  <List.Content>
-                    <List.Header>themes</List.Header>
-                    <List.Description>Packaged theme files</List.Description>
-                    <List.List>
-                      <List.Item>
-                        <List.Icon name='folder' />
-                        <List.Content>
-                          <List.Header>default</List.Header>
-                          <List.Description>Default packaged theme</List.Description>
-                        </List.Content>
-                      </List.Item>
-                      <List.Item>
-                        <List.Icon name='folder' />
-                        <List.Content>
-                          <List.Header>my_theme</List.Header>
-                          <List.Description>
-                            Packaged themes are also available in this folder
-                          </List.Description>
-                        </List.Content>
-                      </List.Item>
-                    </List.List>
-                  </List.Content>
-                </List.Item>
-                <List.Item>
-                  <List.Icon name='file' />
-                  <List.Content>
-                    <List.Header>theme.config</List.Header>
-                    <List.Description>Config file for setting packaged themes</List.Description>
-                  </List.Content>
-                </List.Item>
-              </List.List>
-            </List.Content>
-          </List.Item>
-          <List.Item>
-            <List.Icon name='folder' />
-            <List.Content>
-              <List.Header>dist</List.Header>
-              <List.Description>Compiled CSS and JS files</List.Description>
-              <List.List>
-                <List.Item>
-                  <List.Icon name='folder' />
-                  <List.Content>
-                    <List.Header>components</List.Header>
-                    <List.Description>Individual component CSS and JS</List.Description>
-                  </List.Content>
-                </List.Item>
-              </List.List>
-            </List.Content>
-          </List.Item>
-          <List.Item>
-            <List.Icon name='file' />
-            <List.Content>
-              <List.Header>semantic.json</List.Header>
-              <List.Description>Contains build settings for gulp</List.Description>
-            </List.Content>
-          </List.Item>
+          {this.find_dir(0, 'user')}
         </List>
       </Container>
     )
