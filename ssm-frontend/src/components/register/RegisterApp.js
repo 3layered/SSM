@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Button, Form, Container } from "semantic-ui-react";
 import axios from "axios";
-import { Client } from 'ssh2'
+import { bodyTemplate } from "./RequestTemplate";
 
 class RegisterApp extends Component {
     constructor(props) {
@@ -25,33 +25,6 @@ class RegisterApp extends Component {
         this.inputValueCheck = this.inputValueCheck.bind(this);
 
         this.onTextInput = this.onTextInput.bind(this);
-
-        this.ssh = this.ssh.bind(this);
-
-        this.ssh();
-    }
-    ssh() {
-        //var Client = require('ssh2').Client;
-        var conn = new Client();
-        conn.on('ready', function() {
-            console.log('Client :: ready');
-            conn.shell(function(err, stream) {
-                if (err) throw err;
-                stream.on('close', function() {
-                    console.log('Stream :: close');
-                    conn.end();
-                }).on('data', function(data) {
-                    console.log('STDOUT: ' + data);
-                }).stderr.on('data', function(data) {
-                    console.log('STDERR: ' + data);
-                });
-                stream.end('ls -l\nexit\n');
-            });
-        }).connect({
-            host: 'localhost',
-            port: 22,
-            username: 'kyunggeun',
-        });
     }
     create() {
         const config = this.state.yarnConfig;
@@ -78,15 +51,16 @@ class RegisterApp extends Component {
             .catch(error => console.log(error));
     }
     getNewAppID() {
-        const url = this.props.urlPrefix + 'cluster/apps/new-application';
-
+        // const url = this.props.urlPrefix + 'cluster/apps/new-application';
+        const url = 'http://localhost:8000/api/v1/applications/new-id/';
         return axios.post(url);
     }
     submit(config) {
-        const url = this.props.urlPrefix + 'cluster/apps';
-
+        // const url = this.props.urlPrefix + 'cluster/apps';
+        const url = 'http://localhost:8000/api/v1/applications/submit/';
         const header = {'Content-Type': 'application/json'};
-        const body = {
+        /*
+        const body_local = {
             "application-id": config.appID,
             "application-name": "test",
             "am-container-spec":
@@ -107,8 +81,13 @@ class RegisterApp extends Component {
             "application-type": "YARN",
             "keep-containers-across-application-attempts": false
         };
+        */
 
-        axios.post(url, body, header)
+        const body_emr = bodyTemplate;
+        // TODO: Configure JSON body
+
+
+        axios.post(url /*, body_emr, header*/)
             .then(response => {})
             .catch(error => console.log(error.message))
     }
