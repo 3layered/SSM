@@ -10,16 +10,12 @@ import {
 	Login,
 	NoMatch,
 	AppDetail,
-	AttemptDetail
+	AttemptDetail,
+	Streaming
 } from "./pages";
 import Header from "./Header";
 
-import {
-    AppList,
-    JobList,
-    StageList,
-    StageMetric,
-} from "./components/metric"
+import { AppList, JobList, StageList, StageMetric } from "./components/metric";
 
 class App extends Component {
 	render() {
@@ -33,13 +29,21 @@ class App extends Component {
 					<Route exact path="/apps/detail/attempt" component={AttemptDetail} />
 					<Route exact path="/fop" component={FoP} />
 					<Route exact path="/metric" component={AppList} />
-                        <Route exact path="/metric/applications" component={AppList} />
-                        <Route exact path="/metric/applications/jobs" component={JobList} />
-                        <Route exact path="/metric/applications/jobs/stages" component={StageList} />
-                    	<Route path="/metric/applications/jobs/stages/detail" component={StageMetric} />
+					<Route exact path="/metric/applications" component={AppList} />
+					<Route exact path="/metric/applications/jobs" component={JobList} />
+					<Route
+						exact
+						path="/metric/applications/jobs/stages"
+						component={StageList}
+					/>
+					<Route
+						path="/metric/applications/jobs/stages/detail"
+						component={StageMetric}
+					/>
 					<Route exact path="/nodes" component={Nodes} />
 					<Route exact path="/register" component={Register} />
 					<Route exact path="/login" component={Login} />
+					<Route exact path="/streaming" component={Streaming} />
 					<Route component={NoMatch} />
 				</Switch>
 			</div>

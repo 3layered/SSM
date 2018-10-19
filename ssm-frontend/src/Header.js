@@ -27,6 +27,9 @@ class Header extends Component {
 					</Menu.Item>
 					<Menu.Item as={Link} to="/register">
 						Register
+          </Menu.Item>
+					<Menu.Item as={Link} to="/streaming">
+						Streaming
 					</Menu.Item>
 				</Container>
 			</Menu>
