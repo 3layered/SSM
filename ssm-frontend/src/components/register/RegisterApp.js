@@ -9,100 +9,82 @@ class RegisterApp extends Component {
 
         this.state = {
             yarnConfig: {
-                appID: '',
+                server_url: '',
+                emr: false,
                 command: '',
-                memory: '512',
-                vcore: '1',
-                maxAttempt: '1'
+                filepaths: [],
+                file: '',
+                memory: '1',
+                core: '1',
+                home: '',
+                spark_home: ''
             },
         };
 
-        this.create = this.create.bind(this);
-        this.getNewAppID = this.getNewAppID.bind(this);
         this.submit = this.submit.bind(this);
-
-        this.inputFormatCheck = this.inputFormatCheck.bind(this);
-        this.inputValueCheck = this.inputValueCheck.bind(this);
+        this.buildData = this.buildData.bind(this);
 
         this.onTextInput = this.onTextInput.bind(this);
-    }
-    create() {
-        const config = this.state.yarnConfig;
-
-        if (!this.inputFormatCheck(config)) {
-            alert('bad input format');
-            return;
-        }
-
-        config.memory = parseInt(config.memory, 10);
-        config.vcore = parseInt(config.vcore, 10);
-        config.maxAttempt = parseInt(config.maxAttempt, 10);
-
-        if (!this.inputValueCheck(config)) {
-            alert('bad input value');
-            return;
-        }
-
-        this.getNewAppID()
-            .then(response => {
-                config.appID = response.data['application-id'];
-                this.submit(config);
-            })
-            .catch(error => console.log(error));
-    }
-    getNewAppID() {
-        // const url = this.props.urlPrefix + 'cluster/apps/new-application';
-        const url = 'http://localhost:8000/api/v1/applications/new-id/';
-        return axios.post(url);
+        this.addFile = this.addFile.bind(this);
+        this.emptyFilePaths = this.emptyFilePaths.bind(this);
+        this.onClickCheckbox = this.onClickCheckbox.bind(this);
     }
     submit(config) {
-        // const url = this.props.urlPrefix + 'cluster/apps';
-        const url = 'http://localhost:8000/api/v1/applications/submit/';
+        const backend_url = 'http://localhost:8000/api/v1/applications/submit/';
         const header = {'Content-Type': 'application/json'};
-        /*
-        const body_local = {
-            "application-id": config.appID,
-            "application-name": "test",
-            "am-container-spec":
-                {
 
-                    "commands":
-                        {
-                            "command": config.command //"/home/kyunggeun/spark-2.3.2/bin/spark-submit --master yarn /home/kyunggeun/spark-submit-example/target/scala-2.11/sparkpi_2.11-1.0.jar"
-                        }
-                },
-            "unmanaged-AM": false,
-            "max-app-attempts": config.maxAttempt,
-            "resource":
-                {
-                    "memory": config.memory,
-                    "vCores": config.vcore
-                },
-            "application-type": "YARN",
-            "keep-containers-across-application-attempts": false
-        };
-        */
+        const data = this.buildData(config);
 
-        const body_emr = bodyTemplate;
-        // TODO: Configure JSON body
-
-
-        axios.post(url /*, body_emr, header*/)
+        axios.post(backend_url, data, header)
             .then(response => {})
             .catch(error => console.log(error.message))
-    }
-    inputFormatCheck(yarnConfig) {
-        const re = new RegExp('^[0-9]+$');
 
-        return yarnConfig.memory.match(re) &&
-            yarnConfig.vcore.match(re) &&
-            yarnConfig.maxAttempt.match(re)
+        this.emptyFilePaths();
     }
-    inputValueCheck(yarnConfig) {
-        return yarnConfig.command.length > 0 &&
-            yarnConfig.memory >= 32 &&
-            yarnConfig.vcore > 0 &&
-            yarnConfig.maxAttempt > 0
+    buildData(config) {
+        let url, command, filepaths, environment, home, spark_home;
+
+        url = config.server_url;
+
+        filepaths = '';
+        for (const path of config.filepaths) {
+            filepaths += path + ' ';
+        }
+
+        command = '{{SPARK_HOME}}/bin/spark-submit '
+            + '--master yarn '
+            + '--executor-memory ' + config.memory + 'G '
+            + '--executor-cores ' + config.core + ' '
+            + filepaths;
+
+        if (config.emr) {
+            if (config.home === '') home = '/home/hadoop';
+            if (config.spark_home === '') spark_home = '/usr/lib/spark';
+        } else {
+            home = config.home;
+            spark_home = config.spark_home;
+        }
+
+        environment =
+            {
+                "entry": [{"key": "SPARK_HOME", "value": spark_home},
+                          {"key": "HOME", "value": home}]
+            }
+
+        const httpBody = {
+            "application-id": '', // this field will be filled in backend
+            "application-name": "SUBMIT",
+            "am-container-spec": {
+                "commands": {"command": command},
+                "environment": environment
+            },
+            "unmanaged-AM": "false",
+            "max-app-attempts": "1",
+            "resource": {"memory": 1024, "vCores": 1},
+            "application-type": "SUBMIT",
+            "keep-containers-across-application-attempts": "false"
+        };
+        return {"url": url, "body": httpBody};
     }
     onTextInput = (e) => {
         const stateCopy = this.state;
@@ -112,38 +94,83 @@ class RegisterApp extends Component {
 
         this.setState(stateCopy)
     };
+    addFile() {
+        const stateCopy = this.state;
+
+        stateCopy.yarnConfig.filepaths = [...stateCopy.yarnConfig.filepaths,
+                                             stateCopy.yarnConfig.file];
+        stateCopy.yarnConfig.file = '';
+        this.setState(stateCopy);
+    }
+    emptyFilePaths() {
+        const stateCopy = this.state;
+        stateCopy.yarnConfig.filepaths = [];
+        this.setState(stateCopy);
+    }
+    onClickCheckbox() {
+        const stateCopy = this.state;
+        stateCopy.yarnConfig.emr = !stateCopy.yarnConfig.emr;
+        this.setState(stateCopy);
+    }
 
     render() {
         return (
             <Container style={{marginTop: '3em', marginBottom:'3em'}}>
                 <h3 align="center"> Submit your app </h3>
                 <Form>
-                    <Form.TextArea label='Command'
-                                value={this.state.yarnConfig.command}
+                    <label>I am using Amazon EMR server</label>
+                    <input type="checkbox" value={this.state.yarnConfig.emr}
+                    onClick={this.onClickCheckbox}/>
+                    {this.state.yarnConfig.emr ?
+                        (<div>YES</div>) : (<div>NO</div>)
+                    }
+                    <Form.Input fluid label='Server URL'
+                                value={this.state.yarnConfig.server_url}
                                 onChange={this.onTextInput}
-                                name="command"/>
+                                name="server_url"/>
+                    <Form.TextArea label='File Path'
+                                value={this.state.yarnConfig.file}
+                                onChange={this.onTextInput}
+                                name="file"/>
+                    <Button  className='float-right'
+                             onClick={() => this.addFile()}>
+                        add file
+                    </Button>
+                    <Container>
+                        {this.state.yarnConfig.filepaths}
+                    </Container>
+
                     <Form.Group widths='equal'>
-                            <Form.Input fluid label='Memory Requirement(MB)'
+                            <Form.Input fluid label='Memory Requirement(GB)'
                                         value={this.state.yarnConfig.memory}
                                         onChange={this.onTextInput}
                                         name="memory"/>
                             <Form.Input fluid label='Virtual Core'
-                                        value={this.state.yarnConfig.vcore}
+                                        value={this.state.yarnConfig.core}
                                         onChange={this.onTextInput}
-                                        name="vcore"/>
-                            <Form.Input fluid label='Max Attempt'
-                                        value={this.state.yarnConfig.maxAttempt}
-                                        onChange={this.onTextInput}
-                                        name="maxAttempt">
-                            </Form.Input>
+                                        name="core"/>
+                    </Form.Group>
+                    <Form.Group widths='equal'>
+                        <Form.TextArea label='Home dir'
+                                       value={this.state.yarnConfig.home}
+                                       onChange={this.onTextInput}
+                                       name="home"/>
+
+                        <Form.TextArea label='Spark home dir'
+                                       value={this.state.yarnConfig.spark_home}
+                                       onChange={this.onTextInput}
+                                       name="spark_home"/>
                     </Form.Group>
                 </Form>
                 <Container textAlign="right">
-                    <Button  className='float-right' onClick={this.create}> submit </Button>
+                    <Button  className='float-right' onClick={() => this.submit(this.state.yarnConfig)}>
+                        submit
+                    </Button>
                 </Container>
             </Container>
         );
     }
 }
+
 
 export default RegisterApp

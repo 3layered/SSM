@@ -19,7 +19,7 @@ class AppList extends Component {
         this.renderTableBody = this.renderTableBody.bind(this);
         this.renderBodyRow = this.renderBodyRow.bind(this);
 
-        this.getAppList();
+        // this.getAppList();
     }
     getAppList() {
         const url = this.props.urlPrefix + 'cluster/apps/';
