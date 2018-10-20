@@ -7,7 +7,7 @@ class RegisterApp extends Component {
         super(props);
 
         this.state = {
-            errorMessage: '',
+            errorMessages: [],
             yarnConfig: {
                 server_url: '',
                 emr: false,
@@ -28,8 +28,21 @@ class RegisterApp extends Component {
         this.onClickCheckbox = this.onClickCheckbox.bind(this);
     }
     submit(config) {
-        if (!config.server_url) {
-            this.submitNotSuccessful("Enter server url");
+        let errorMessages = [];
+        if (config.server_url === '') {
+            errorMessages.push("Enter server url");
+        }
+        if (config.filepaths.length === 0) {
+            errorMessages.push("Enter file path of your app");
+        }
+        if (config.memory === '') {
+            errorMessages.push("Enter memory requirement");
+        }
+        if (config.core === '') {
+            errorMessages.push("Enter #core requirement");
+        }
+        if (errorMessages.length > 0){
+            this.submitNotSuccessful(errorMessages);
             return;
         }
 
@@ -40,7 +53,10 @@ class RegisterApp extends Component {
 
         axios.post(backend_url, data, header)
             .then(response => {
-                if (response) this.submitNotSuccessful(response.data);
+                if (response) {
+                    errorMessages = response.data["err_msg"];
+                    this.submitNotSuccessful(errorMessages);
+                }
                 else this.submitSuccessful();
             })
             .catch(error => console.log(error.message));
@@ -48,15 +64,15 @@ class RegisterApp extends Component {
         this.emptyFilePaths();
     }
     submitSuccessful() {
-        this.setErrorMessage('');
+        this.setErrorMessages([]);
         this.emptyFilePaths();
     }
     submitNotSuccessful(errorMessage) {
-        this.setErrorMessage(errorMessage)
+        this.setErrorMessages(errorMessage)
     }
-    setErrorMessage(message) {
+    setErrorMessages(messages) {
         const stateCopy = this.state;
-        stateCopy.errorMessage = message;
+        stateCopy.errorMessages = messages;
         this.setState(stateCopy);
     }
     buildData(config) {
@@ -135,7 +151,11 @@ class RegisterApp extends Component {
         return (
             <Container style={{marginTop: '3em', marginBottom:'3em'}}>
                 <h3 align="center"> Submit your app </h3>
-                <h4 align="center" style={{color: "red"}}> {this.state.errorMessage} </h4>
+                <h4 align="center" style={{color: "red"}}>
+                    {this.state.errorMessages.map((msg, i) => {
+                        return <div>{msg}</div>;
+                    })}
+                </h4>
                 <Form>
                     <label>I am using Amazon EMR server</label>
                     <input type="checkbox" value={this.state.yarnConfig.emr}
@@ -153,7 +173,11 @@ class RegisterApp extends Component {
                         add file
                     </Button>
                     <Container>
-                        {this.state.yarnConfig.filepaths}
+                        {this.state.yarnConfig.filepaths.map((path, i) => {
+                            return ((i === 0) ?
+                                <div>App: {path}</div>
+                                : <div>Argument {i}: {path}</div>)
+                        })}
                     </Container>
 
                     <Form.Group widths='equal'>
@@ -161,7 +185,7 @@ class RegisterApp extends Component {
                                         value={this.state.yarnConfig.memory}
                                         onChange={this.onTextInput}
                                         name="memory"/>
-                            <Form.Input fluid label='Virtual Core'
+                            <Form.Input fluid label='Number of Cores'
                                         value={this.state.yarnConfig.core}
                                         onChange={this.onTextInput}
                                         name="core"/>

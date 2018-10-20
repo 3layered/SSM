@@ -34,20 +34,19 @@ def submit(request):
     max_mem = maximum_resource_capacity['memory']
     max_core = maximum_resource_capacity['vCores']
 
-    err_msg = ''
+    err_msg = {'err_msg': []}
     if required_mem > max_mem:
-        err_msg += "YARN RM does not allow more than {} MB memory\n".format(max_mem)
+        err_msg['err_msg'].append("YARN RM does not allow more than {} MB memory\n".format(max_mem))
 
     if required_cores > max_core:
-        err_msg += "YARN RM does not allow more than {} cores\n".format(max_core)
+        err_msg['err_msg'].append("YARN RM does not allow more than {} cores\n".format(max_core))
 
-    if err_msg:
+    if len(err_msg['err_msg']) > 0:
         conn.close()
         return Response(err_msg)
 
     conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
     response = conn.getresponse().read().decode('utf-8')
-    response = json.loads(response)
 
     conn.close()
 
