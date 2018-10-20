@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Button, Form, Container } from "semantic-ui-react";
 import axios from "axios";
-import { bodyTemplate } from "./RequestTemplate";
 
 class RegisterApp extends Component {
     constructor(props) {

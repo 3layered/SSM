@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import http, requests, json
+import http, json
 
 headers = {'Content-Type': 'application/json'}
 
@@ -12,10 +12,6 @@ def submit(request):
     url = request.data['url']
     body = request.data['body']
 
-    r = requests.post(url + '/ws/v1/cluster/apps/new-application') # Get new app-id
-    app_id = r.json()['application-id']
-    body['application-id'] = str(app_id)
-
     # HTTPConnection obj does not accept "http://" or "https://" as url input
     if url[0:5] == 'https':
         url = url[8:]
@@ -23,7 +19,17 @@ def submit(request):
         url = url[7:]
 
     conn = http.client.HTTPConnection(url)
-    conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
-    r = conn.getresponse()
+    conn.request('POST', '/ws/v1/cluster/apps/new-application')
+    response = conn.getresponse().read()
+    response = str(response)[2:-1]
+    response = json.loads(response)
 
-    return Response(r)
+    app_id = response['application-id']
+    body['application-id'] = str(app_id)
+
+    conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
+    response = conn.getresponse()
+
+    conn.close()
+
+    return Response(response)
