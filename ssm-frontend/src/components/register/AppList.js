@@ -22,8 +22,10 @@ class AppList extends Component {
         this.getAppList();
     }
     getAppList() {
-        const url = this.props.urlPrefix + 'cluster/apps/';
-        axios.get(url)
+        const server_url = 'http://localhost:8088';
+        const backend_url = 'http://localhost:8000/api/v1/applications/';
+        const header = {'Content-Type': 'application/json'};
+        axios.post(backend_url, {"url": server_url}, header)
             .then(response => {
                     if (response.data['apps']) {
                         const stateCopy = this.state;
@@ -42,12 +44,16 @@ class AppList extends Component {
             });
     }
     kill(appID) {
-        const url = this.props.urlPrefix + 'cluster/apps/' + appID + '/state/';
+        const server_url = 'http://localhost:8088';
+        const backend_url = 'http://localhost:8000/api/v1/applications/kill/' + appID + '/';
         const header = {'Content-Type': 'application/json'};
-        const data = {'state': 'KILLED'};
+        const state = {'state': 'KILLED'};
+        const body = {"url": server_url, "state": state}
 
-        axios.put(url, data, header)
-            .then(response => alert('Killed ' + appID + ' successfully'))
+        axios.put(backend_url, body, header)
+            .then(response => {
+                if (response.data['state']) this.getAppList();
+            })
             .catch(error => console.log(error));
     }
     renderTable() {
@@ -104,9 +110,9 @@ class AppList extends Component {
                 {(appInfo['state'] !== 'KILLED' &&
                      appInfo['state'] !== 'FINISHED' &&
                      appInfo['state'] !== 'FAILED') ?
-                        <Table.Cell onClick={() => this.kill(appInfo['id'])}>
+                        <Button onClick={() => this.kill(appInfo['id'])}>
                             Kill
-                        </Table.Cell>
+                        </Button>
                         : <Table.Cell> </Table.Cell>}
             </Table.Row>
         )
