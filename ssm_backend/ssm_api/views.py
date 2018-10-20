@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import http, json, re
+import http, json, polling, requests, asyncio
 
 headers = {'Content-Type': 'application/json'}
 
@@ -48,9 +48,30 @@ def submit(request):
     conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
     response = conn.getresponse().read().decode('utf-8')
 
+    polling.poll(lambda: wait_for_submit(url, app_id), step=3, poll_forever=True)
+
+    conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(app_id), body=json.dumps({"state": "KILLED"}), headers=headers)
+    if conn.getresponse():
+        pass
+
     conn.close()
 
     return Response(response)
+
+
+def wait_for_submit(url, app_id):
+    submitter_id = app_id
+    spark_id = app_id[:-4] + str(int(app_id[-4:]) + 1).zfill(4)
+
+    submitter = requests.get('http://{}/ws/v1/cluster/apps/{}/state'
+                             .format(url, submitter_id)).json()
+    submit_fail = submitter['state'] in ['FAILED', 'KILLED']
+
+    spark = requests.get('http://{}/ws/v1/cluster/apps/{}/state'
+                             .format(url, spark_id)).json()
+    submit_success = 'state' in spark.keys()
+    
+    return submit_fail or submit_success
 
 @api_view(['POST'])
 def get_app_list(request):

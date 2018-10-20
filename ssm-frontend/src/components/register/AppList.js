@@ -53,7 +53,6 @@ class AppList extends Component {
         axios.put(backend_url, body, header)
             .then(response => {
                 if (response.data['state']) this.getAppList();
-                else alert('nonononononono')
             })
             .catch(error => console.log(error));
     }
@@ -111,9 +110,9 @@ class AppList extends Component {
                 {(appInfo['state'] !== 'KILLED' &&
                      appInfo['state'] !== 'FINISHED' &&
                      appInfo['state'] !== 'FAILED') ?
-                        <Table.Cell onClick={() => this.kill(appInfo['id'])}>
+                        <Button onClick={() => this.kill(appInfo['id'])}>
                             Kill
-                        </Table.Cell>
+                        </Button>
                         : <Table.Cell> </Table.Cell>}
             </Table.Row>
         )
