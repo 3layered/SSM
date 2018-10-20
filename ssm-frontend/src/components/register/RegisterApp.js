@@ -53,7 +53,7 @@ class RegisterApp extends Component {
 
         axios.post(backend_url, data, header)
             .then(response => {
-                if (response) {
+                if (response.data !== '') {
                     errorMessages = response.data["err_msg"];
                     this.submitNotSuccessful(errorMessages);
                 }
