@@ -44,12 +44,17 @@ class AppList extends Component {
             });
     }
     kill(appID) {
-        const url = this.props.urlPrefix + 'cluster/apps/' + appID + '/state/';
+        const server_url = 'http://localhost:8088';
+        const backend_url = 'http://localhost:8000/api/v1/applications/kill/' + appID + '/';
         const header = {'Content-Type': 'application/json'};
-        const data = {'state': 'KILLED'};
+        const state = {'state': 'KILLED'};
+        const body = {"url": server_url, "state": state}
 
-        axios.put(url, data, header)
-            .then(response => alert('Killed ' + appID + ' successfully'))
+        axios.put(backend_url, body, header)
+            .then(response => {
+                if (response.data['state']) this.getAppList();
+                else alert('nonononononono')
+            })
             .catch(error => console.log(error));
     }
     renderTable() {

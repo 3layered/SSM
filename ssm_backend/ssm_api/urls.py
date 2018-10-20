@@ -6,4 +6,5 @@ urlpatterns = [
     path('applications/<str:app_id>/streaming/',
          include('streaming.urls')),
     path('applications/submit/', views.submit),
+    path('applications/kill/<str:app_id>/', views.kill)
 ]

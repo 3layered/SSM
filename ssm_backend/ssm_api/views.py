@@ -4,21 +4,23 @@ import http, json, re
 
 headers = {'Content-Type': 'application/json'}
 
+def detach_http(url):
+    # HTTPConnection obj does not accept "http://" or "https://" as url input
+    if url[0:5] == 'https':
+        return url[8:]
+    elif url[0:4] == 'http':
+        return url[7:]
+
+
 @api_view(['POST'])
 def submit(request):
     if request.method != 'POST':
         return
 
-    url = request.data['url']
+    url = detach_http(request.data['url'])
     body = request.data['body']
     required_mem = int(request.data['memory'])
     required_cores = int(request.data['cores'])
-
-    # HTTPConnection obj does not accept "http://" or "https://" as url input
-    if url[0:5] == 'https':
-        url = url[8:]
-    elif url[0:4] == 'http':
-        url = url[7:]
 
     conn = http.client.HTTPConnection(url)
     conn.request('POST', '/ws/v1/cluster/apps/new-application')
@@ -45,6 +47,7 @@ def submit(request):
 
     conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
     response = conn.getresponse().read().decode('utf-8')
+    response = json.loads(response)
 
     conn.close()
 
@@ -55,7 +58,7 @@ def get_app_list(request):
     if request.method != 'POST':
         return
 
-    url = request.data['url']
+    url = detach_http(request.data['url'])
 
     if url[0:5] == 'https':
         url = url[8:]
@@ -64,6 +67,24 @@ def get_app_list(request):
 
     conn = http.client.HTTPConnection(url)
     conn.request('GET', '/ws/v1/cluster/apps/')
+    response = conn.getresponse().read().decode('utf-8')
+    response = json.loads(response)
+
+    conn.close()
+
+    return Response(response)
+
+@api_view(['PUT'])
+def kill(request, **kwargs):
+    if request.method != 'PUT':
+        return
+
+    url = detach_http(request.data['url'])
+    app_id = kwargs['app_id']
+    body = request.data['state']
+
+    conn = http.client.HTTPConnection(url)
+    conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(app_id), body=json.dumps(body), headers=headers)
     response = conn.getresponse().read().decode('utf-8')
     response = json.loads(response)
 
