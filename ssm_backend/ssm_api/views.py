@@ -1,7 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import http, json
-from django.http import HttpResponseBadRequest
+import http, json, re
 
 headers = {'Content-Type': 'application/json'}
 
@@ -23,8 +22,7 @@ def submit(request):
 
     conn = http.client.HTTPConnection(url)
     conn.request('POST', '/ws/v1/cluster/apps/new-application')
-    response = conn.getresponse().read()
-    response = str(response)[2:-1]
+    response = conn.getresponse().read().decode('utf-8')
     response = json.loads(response)
 
     app_id = response['application-id']
@@ -42,10 +40,32 @@ def submit(request):
         err_msg += "YARN RM does not allow more than {} cores\n".format(max_core)
 
     if err_msg:
+        conn.close()
         return Response(err_msg)
 
     conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
-    response = conn.getresponse()
+    response = conn.getresponse().read().decode('utf-8')
+
+    conn.close()
+
+    return Response(response)
+
+@api_view(['POST'])
+def get_app_list(request):
+    if request.method != 'POST':
+        return
+
+    url = request.data['url']
+
+    if url[0:5] == 'https':
+        url = url[8:]
+    elif url[0:4] == 'http':
+        url = url[7:]
+
+    conn = http.client.HTTPConnection(url)
+    conn.request('GET', '/ws/v1/cluster/apps/')
+    response = conn.getresponse().read().decode('utf-8')
+    response = json.loads(response)
 
     conn.close()
 

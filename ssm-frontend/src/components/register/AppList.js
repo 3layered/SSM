@@ -19,11 +19,13 @@ class AppList extends Component {
         this.renderTableBody = this.renderTableBody.bind(this);
         this.renderBodyRow = this.renderBodyRow.bind(this);
 
-        // this.getAppList();
+        this.getAppList();
     }
     getAppList() {
-        const url = this.props.urlPrefix + 'cluster/apps/';
-        axios.get(url)
+        const server_url = 'http://localhost:8088';
+        const backend_url = 'http://localhost:8000/api/v1/applications/';
+        const header = {'Content-Type': 'application/json'};
+        axios.post(backend_url, {"url": server_url}, header)
             .then(response => {
                     if (response.data['apps']) {
                         const stateCopy = this.state;
