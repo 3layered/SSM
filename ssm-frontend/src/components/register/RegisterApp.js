@@ -7,13 +7,14 @@ class RegisterApp extends Component {
         super(props);
 
         this.state = {
+            errorMessage: '',
             yarnConfig: {
                 server_url: '',
                 emr: false,
                 command: '',
                 filepaths: [],
                 file: '',
-                memory: '1',
+                memory: '512',
                 core: '1',
                 home: '',
                 spark_home: ''
@@ -21,24 +22,42 @@ class RegisterApp extends Component {
         };
 
         this.submit = this.submit.bind(this);
-        this.buildData = this.buildData.bind(this);
 
         this.onTextInput = this.onTextInput.bind(this);
         this.addFile = this.addFile.bind(this);
-        this.emptyFilePaths = this.emptyFilePaths.bind(this);
         this.onClickCheckbox = this.onClickCheckbox.bind(this);
     }
     submit(config) {
+        if (!config.server_url) {
+            this.submitNotSuccessful("Enter server url");
+            return;
+        }
+
         const backend_url = 'http://localhost:8000/api/v1/applications/submit/';
         const header = {'Content-Type': 'application/json'};
 
         const data = this.buildData(config);
 
         axios.post(backend_url, data, header)
-            .then(response => {})
-            .catch(error => console.log(error.message))
+            .then(response => {
+                if (response) this.submitNotSuccessful(response.data);
+                else this.submitSuccessful();
+            })
+            .catch(error => console.log(error.message));
 
         this.emptyFilePaths();
+    }
+    submitSuccessful() {
+        this.setErrorMessage('');
+        this.emptyFilePaths();
+    }
+    submitNotSuccessful(errorMessage) {
+        this.setErrorMessage(errorMessage)
+    }
+    setErrorMessage(message) {
+        const stateCopy = this.state;
+        stateCopy.errorMessage = message;
+        this.setState(stateCopy);
     }
     buildData(config) {
         let url, command, filepaths, environment, home, spark_home;
@@ -52,7 +71,7 @@ class RegisterApp extends Component {
 
         command = '{{SPARK_HOME}}/bin/spark-submit '
             + '--master yarn '
-            + '--executor-memory ' + config.memory + 'G '
+            + '--executor-memory ' + config.memory + 'M '
             + '--executor-cores ' + config.core + ' '
             + filepaths;
 
@@ -83,7 +102,7 @@ class RegisterApp extends Component {
             "application-type": "SUBMIT",
             "keep-containers-across-application-attempts": "false"
         };
-        return {"url": url, "body": httpBody};
+        return {"url": url, "body": httpBody, "memory": config.memory, "cores": config.core};
     }
     onTextInput = (e) => {
         const stateCopy = this.state;
@@ -116,13 +135,11 @@ class RegisterApp extends Component {
         return (
             <Container style={{marginTop: '3em', marginBottom:'3em'}}>
                 <h3 align="center"> Submit your app </h3>
+                <h4 align="center" style={{color: "red"}}> {this.state.errorMessage} </h4>
                 <Form>
                     <label>I am using Amazon EMR server</label>
                     <input type="checkbox" value={this.state.yarnConfig.emr}
                     onClick={this.onClickCheckbox}/>
-                    {this.state.yarnConfig.emr ?
-                        (<div>YES</div>) : (<div>NO</div>)
-                    }
                     <Form.Input fluid label='Server URL'
                                 value={this.state.yarnConfig.server_url}
                                 onChange={this.onTextInput}
@@ -140,7 +157,7 @@ class RegisterApp extends Component {
                     </Container>
 
                     <Form.Group widths='equal'>
-                            <Form.Input fluid label='Memory Requirement(GB)'
+                            <Form.Input fluid label='Memory Requirement(MB)'
                                         value={this.state.yarnConfig.memory}
                                         onChange={this.onTextInput}
                                         name="memory"/>
