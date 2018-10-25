@@ -8,13 +8,10 @@ class DirectoryList extends Component {
 		this.state = {};
 		axios
 			.get(
-				"http://localhost:50070/webhdfs/v1/user/?op=LISTSTATUS"
+				"http://"+this.props.url+"/webhdfs/v1/user/?op=LISTSTATUS"
 			)
 			.then(response => {
 				this.setState({'tree':[{'parent': 'user', 'dirs':response.data.FileStatuses.FileStatus}]})
-        this.state.tree[0].dirs.map((dir, i) => {
-          this.toggle_dir(this.state.tree[0].parent+'/'+dir.pathSuffix)
-        })
 			})
 			.catch(error => {
 				alert('error');
@@ -39,7 +36,7 @@ class DirectoryList extends Component {
     if (exist === 1) return
     axios
 			.get(
-				"http://localhost:50070/webhdfs/v1/"+path+"/?op=LISTSTATUS"
+				"http://"+this.props.url+"/webhdfs/v1/"+path+"/?op=LISTSTATUS"
 			)
 			.then(response => {
 				  this.setState({
@@ -56,9 +53,9 @@ class DirectoryList extends Component {
       return;
     } else {
       if ((this.state.tree[idx].parent === parent)) {
-        const {dirs} = this.state.tree[idx]
+        const {dirs, parent} = this.state.tree[idx]
         return(
-        <dir>{
+        <Container>{
         dirs.map((dir, i) => {
           if (dir.type === "DIRECTORY") {
             return(
@@ -83,9 +80,10 @@ class DirectoryList extends Component {
               </List.Item>
             )
           } else if (dir.type === "FILE") {
+            const submitInfo = "hdfs://"+this.props.url+"/"+parent+"/"+dir.pathSuffix+" "+dir.blockSize+" "+dir.modificationTime
             return(
               <List.Item key={i}>
-                <List.Icon name='file' />
+                <List.Icon name='file' onClick={(e,i)=>this.props.setFile(submitInfo)}/>
                 <List.Content>
                   <List.Header>{dir.pathSuffix}</List.Header>
                   <List.Description>owner : {dir.owner}</List.Description>
@@ -94,7 +92,7 @@ class DirectoryList extends Component {
             )
           }
         })
-        }</dir>
+      }</Container>
       )}
     }
   }
