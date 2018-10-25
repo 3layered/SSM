@@ -4,20 +4,32 @@ import http, json, polling, requests, asyncio
 
 headers = {'Content-Type': 'application/json'}
 
-def detach_http(url):
+def conform_url_format(url):
+    # detach http:// or https://
     # HTTPConnection obj does not accept "http://" or "https://" as url input
+    """
     if url[0:5] == 'https':
-        return url[8:]
+        url = url[8:]
     elif url[0:4] == 'http':
-        return url[7:]
-
+        url = url[7:]
+    # attach port number
+    if url[-4:] != '8888':
+        url += ':8888'
+    """
+    return url
 
 @api_view(['POST'])
 def submit(request):
     if request.method != 'POST':
         return
 
-    url = detach_http(request.data['url'])
+    url = conform_url_format(request.data['url'])
+
+    if url[0:5] == 'https':
+        url = url[8:]
+    elif url[0:4] == 'http':
+        url = url[7:]
+
     body = request.data['body']
     required_mem = int(request.data['memory'])
     required_cores = int(request.data['cores'])
@@ -65,11 +77,13 @@ def wait_for_submit(url, app_id):
 
     submitter = requests.get('http://{}/ws/v1/cluster/apps/{}/state'
                              .format(url, submitter_id)).json()
-    submit_fail = submitter['state'] in ['FAILED', 'KILLED']
+    submit_fail = 'state' in submitter.keys() and \
+                  submitter['state'] in ['FAILED', 'KILLED']
 
     spark = requests.get('http://{}/ws/v1/cluster/apps/{}/state'
                              .format(url, spark_id)).json()
-    submit_success = 'state' in spark.keys()
+    submit_success = 'state' in spark.keys() and \
+        spark['state'] == 'RUNNING'
     
     return submit_fail or submit_success
 
@@ -78,7 +92,7 @@ def get_app_list(request):
     if request.method != 'POST':
         return
 
-    url = detach_http(request.data['url'])
+    url = conform_url_format(request.data['url'])
 
     if url[0:5] == 'https':
         url = url[8:]
@@ -99,9 +113,16 @@ def kill(request, **kwargs):
     if request.method != 'PUT':
         return
 
-    url = detach_http(request.data['url'])
+    url = conform_url_format(request.data['url'])
     app_id = kwargs['app_id']
     body = request.data['state']
+
+    if url[0:5] == 'https':
+        url = url[8:]
+    elif url[0:4] == 'http':
+        url = url[7:]
+
+    print(url)
 
     conn = http.client.HTTPConnection(url)
     conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(app_id), body=json.dumps(body), headers=headers)
