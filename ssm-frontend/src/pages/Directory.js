@@ -5,7 +5,7 @@ class Directory extends Component {
   render(){
     return(
       <Container>
-        <DirectoryList/>
+        <DirectoryList url={'localhost:50070'} setFile={console.log} />
       </Container>
     )
   }
