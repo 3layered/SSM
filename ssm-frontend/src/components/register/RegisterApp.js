@@ -12,7 +12,7 @@ class RegisterApp extends Component {
                 server_url: '',
                 emr: false,
                 command: '',
-                filepaths: [],
+                localFilePaths: [],
                 file: '',
                 memory: '512',
                 core: '1',
@@ -32,7 +32,7 @@ class RegisterApp extends Component {
         if (config.server_url === '') {
             errorMessages.push("Enter server url");
         }
-        if (config.filepaths.length === 0) {
+        if (config.localFilePaths.length === 0) {
             errorMessages.push("Enter file path of your app");
         }
         if (config.memory === '') {
@@ -76,20 +76,42 @@ class RegisterApp extends Component {
         this.setState(stateCopy);
     }
     buildData(config) {
-        let url, command, filepaths, environment, home, spark_home;
+        let url, command, argumentFilePaths, hdfsResources, environment, home, spark_home;
 
         url = config.server_url;
 
-        filepaths = '';
-        for (const path of config.filepaths) {
-            filepaths += path + ' ';
+        argumentFilePaths = '';
+        hdfsResources = [];
+        for (let i = 0; i < config.localFilePaths.length; i++) {
+            let path = config.localFilePaths[i];
+            let trimmedPath = path.trim();
+            if (trimmedPath.substring(0, 7) === 'hdfs://') {
+                let splitPath = trimmedPath.split(" ");
+                let key = "HDFS_" + i;
+                let hdfsPath = splitPath[0];
+                let size = splitPath[1];
+                let timestamp = splitPath[2];
+                hdfsResources.push({
+                    "key": key,
+                    "value": {
+                        "resource": hdfsPath,
+                        "type": "FILE",
+                        "visibility": "APPLICATION",
+                        "size": size,
+                        "timestamp": timestamp
+                    }
+                })
+                argumentFilePaths += key + ' ';
+            } else {
+                argumentFilePaths += trimmedPath + ' ';
+            }
         }
 
         command = '{{SPARK_HOME}}/bin/spark-submit '
             + '--master yarn '
             + '--executor-memory ' + config.memory + 'M '
             + '--executor-cores ' + config.core + ' '
-            + filepaths;
+            + argumentFilePaths;
 
         if (config.emr) {
             if (config.home === '') home = '/home/hadoop';
@@ -103,12 +125,13 @@ class RegisterApp extends Component {
             {
                 "entry": [{"key": "SPARK_HOME", "value": spark_home},
                           {"key": "HOME", "value": home}]
-            }
+            };
 
         const httpBody = {
             "application-id": '', // this field will be filled in backend
             "application-name": "SUBMIT",
             "am-container-spec": {
+                "local-resources": {"entry": hdfsResources},
                 "commands": {"command": command},
                 "environment": environment
             },
@@ -131,14 +154,14 @@ class RegisterApp extends Component {
     addFile() {
         const stateCopy = this.state;
 
-        stateCopy.yarnConfig.filepaths = [...stateCopy.yarnConfig.filepaths,
+        stateCopy.yarnConfig.localFilePaths = [...stateCopy.yarnConfig.localFilePaths,
                                              stateCopy.yarnConfig.file];
         stateCopy.yarnConfig.file = '';
         this.setState(stateCopy);
     }
     emptyFilePaths() {
         const stateCopy = this.state;
-        stateCopy.yarnConfig.filepaths = [];
+        stateCopy.yarnConfig.localFilePaths = [];
         this.setState(stateCopy);
     }
     onClickCheckbox() {
@@ -173,7 +196,7 @@ class RegisterApp extends Component {
                         add file
                     </Button>
                     <Container>
-                        {this.state.yarnConfig.filepaths.map((path, i) => {
+                        {this.state.yarnConfig.localFilePaths.map((path, i) => {
                             return ((i === 0) ?
                                 <div>App: {path}</div>
                                 : <div>Argument {i}: {path}</div>)

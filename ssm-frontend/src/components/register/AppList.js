@@ -92,7 +92,9 @@ class AppList extends Component {
         return (
             <Table.Body>
                 {appList.map((appInfo, i) => {
-                        return this.renderBodyRow(appInfo)
+                        // if (appInfo['name'] != 'SUBMIT') {
+                            return this.renderBodyRow(appInfo)
+                        // }
                     }
                 )}
             </Table.Body>
