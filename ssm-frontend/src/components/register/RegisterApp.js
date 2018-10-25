@@ -12,7 +12,7 @@ class RegisterApp extends Component {
                 server_url: '',
                 emr: false,
                 command: '',
-                localFilePaths: [],
+                filePaths: [],
                 file: '',
                 memory: '512',
                 core: '1',
@@ -32,7 +32,7 @@ class RegisterApp extends Component {
         if (config.server_url === '') {
             errorMessages.push("Enter server url");
         }
-        if (config.localFilePaths.length === 0) {
+        if (config.filePaths.length === 0) {
             errorMessages.push("Enter file path of your app");
         }
         if (config.memory === '') {
@@ -82,8 +82,8 @@ class RegisterApp extends Component {
 
         argumentFilePaths = '';
         hdfsResources = [];
-        for (let i = 0; i < config.localFilePaths.length; i++) {
-            let path = config.localFilePaths[i];
+        for (let i = 0; i < config.filePaths.length; i++) {
+            let path = config.filePaths[i];
             let trimmedPath = path.trim();
             if (trimmedPath.substring(0, 7) === 'hdfs://') {
                 let splitPath = trimmedPath.split(" ");
@@ -154,19 +154,24 @@ class RegisterApp extends Component {
     addFile() {
         const stateCopy = this.state;
 
-        stateCopy.yarnConfig.localFilePaths = [...stateCopy.yarnConfig.localFilePaths,
+        stateCopy.yarnConfig.filePaths = [...stateCopy.yarnConfig.filePaths,
                                              stateCopy.yarnConfig.file];
         stateCopy.yarnConfig.file = '';
         this.setState(stateCopy);
     }
     emptyFilePaths() {
         const stateCopy = this.state;
-        stateCopy.yarnConfig.localFilePaths = [];
+        stateCopy.yarnConfig.filePaths = [];
         this.setState(stateCopy);
     }
     onClickCheckbox() {
         const stateCopy = this.state;
         stateCopy.yarnConfig.emr = !stateCopy.yarnConfig.emr;
+        this.setState(stateCopy);
+    }
+    setFile(fileName){
+        const stateCopy = this.state;
+        stateCopy.yarnConfig.filePaths.push(fileName);
         this.setState(stateCopy);
     }
 
@@ -191,12 +196,13 @@ class RegisterApp extends Component {
                                 value={this.state.yarnConfig.file}
                                 onChange={this.onTextInput}
                                 name="file"/>
+                    <module setFile={this.setFile}/>
                     <Button  className='float-right'
                              onClick={() => this.addFile()}>
                         add file
                     </Button>
                     <Container>
-                        {this.state.yarnConfig.localFilePaths.map((path, i) => {
+                        {this.state.yarnConfig.filePaths.map((path, i) => {
                             return ((i === 0) ?
                                 <div>App: {path}</div>
                                 : <div>Argument {i}: {path}</div>)
