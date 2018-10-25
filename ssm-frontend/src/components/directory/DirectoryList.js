@@ -80,7 +80,7 @@ class DirectoryList extends Component {
               </List.Item>
             )
           } else if (dir.type === "FILE") {
-            const submitInfo = "hdfs://"+this.props.url+"/"+parent+"/"+dir.pathSuffix+" "+dir.blockSize+" "+dir.modificationTime
+            const submitInfo = "/"+parent+"/"+dir.pathSuffix+" "+dir.blockSize+" "+dir.modificationTime
             return(
               <List.Item key={i}>
                 <List.Icon name='file' onClick={(e,i)=>this.props.setFile(submitInfo)}/>

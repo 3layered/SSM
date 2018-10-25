@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Button, Form, Container } from "semantic-ui-react";
 import axios from "axios";
+import { DirectoryList } from "../directory";
 
 class RegisterApp extends Component {
     constructor(props) {
@@ -169,9 +170,10 @@ class RegisterApp extends Component {
         stateCopy.yarnConfig.emr = !stateCopy.yarnConfig.emr;
         this.setState(stateCopy);
     }
-    setFile(fileName){
-        const stateCopy = this.state;
-        stateCopy.yarnConfig.filePaths.push(fileName);
+    setFile = (fileName) => {
+        const stateCopy = {...this.state};
+        stateCopy.yarnConfig.filePaths = [...stateCopy.yarnConfig.filePaths,
+                                            "hdfs://localhost:9000"+ fileName]
         this.setState(stateCopy);
     }
 
@@ -196,7 +198,8 @@ class RegisterApp extends Component {
                                 value={this.state.yarnConfig.file}
                                 onChange={this.onTextInput}
                                 name="file"/>
-                    <module setFile={this.setFile}/>
+                    <DirectoryList setFile={this.setFile}
+                                    url = "localhost:50070"/>
                     <Button  className='float-right'
                              onClick={() => this.addFile()}>
                         add file

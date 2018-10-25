@@ -31,7 +31,6 @@ def submit(request):
         url = url[7:]
 
     body = request.data['body']
-    print(body['am-container-spec'])
     required_mem = int(request.data['memory'])
     required_cores = int(request.data['cores'])
 
