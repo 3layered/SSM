@@ -3,9 +3,10 @@ from rest_framework.response import Response
 import requests
 
 
-@api_view(['GET'])
-def directory(request, dir):
-    if request.method == 'GET':
+@api_view(['POST'])
+def directory(request):
+    if request.method == 'POST':
+        print(request.data)
         r = requests.get(
-            'http://localhost:50700/webhdfs/v1/'+dir+'?op=LISTSTATUS')
+            'http://localhost:50070/webhdfs/v1/'+request.data['dir']+'?op=LISTSTATUS')
         return Response(r.json())

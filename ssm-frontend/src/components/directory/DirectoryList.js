@@ -7,8 +7,10 @@ class DirectoryList extends Component {
 		super(props);
 		this.state = {};
 		axios
-			.get(
-				"http://"+this.props.url+"/webhdfs/v1/user/?op=LISTSTATUS"
+			.post(
+				"http://localhost:8000/api/v1/directory/", {
+          'dir': 'user'
+        }
 			)
 			.then(response => {
 				this.setState({'tree':[{'parent': 'user', 'dirs':response.data.FileStatuses.FileStatus}]})
@@ -35,8 +37,11 @@ class DirectoryList extends Component {
     }
     if (exist === 1) return
     axios
-			.get(
-				"http://"+this.props.url+"/webhdfs/v1/"+path+"/?op=LISTSTATUS"
+			.post(
+				// "http://"+this.props.url+"/webhdfs/v1/"+path+"/?op=LISTSTATUS"
+        "http://localhost:8000/api/v1/directory/", {
+          'dir': path
+        }
 			)
 			.then(response => {
 				  this.setState({
