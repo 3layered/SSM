@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ssm_api.apps.SsmApiConfig',
     'streaming.apps.StreamingConfig',
+    'applications.apps.ApplicationsConfig',
     'corsheaders'
 ]
 

@@ -56,6 +56,15 @@ class AppList extends Component {
             })
             .catch(error => console.log(error));
     }
+    resubmit(appID) {
+        const backend_url = 'http://localhost:8000/api/v1/applications/submit/' + appID + '/';
+
+        axios.post(backend_url)
+            .then(response => {
+                // if (response.data['state']) this.getAppList();
+            })
+            .catch(error => console.log(error));
+    }
     renderTable() {
         let appListCopy = this.state.appList;
 
@@ -114,8 +123,13 @@ class AppList extends Component {
                      appInfo['state'] !== 'FAILED') ?
                         <Button onClick={() => this.kill(appInfo['id'])}>
                             Kill
-                        </Button>
-                        : <Table.Cell> </Table.Cell>}
+                        </Button> :
+                        appInfo['state'] !== 'FAILED' ?
+                            <Button onClick={() => this.resubmit(appInfo['id'])}>
+                                Resubmit
+                            </Button> :
+                            <Table.Cell> </Table.Cell>
+                }
             </Table.Row>
         )
     }
