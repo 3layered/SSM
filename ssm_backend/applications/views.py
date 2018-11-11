@@ -39,14 +39,14 @@ def get_app_list(request):
     return JsonResponse({'apps': {'app': app_list}})
 
 
-@api_view(['PUT'])
+@api_view(['POST'])
 def kill(request, **kwargs):
-    if request.method != 'PUT':
+    if request.method != 'POST':
         return
 
-    url = services.conform_url_format(request.data['url'])
     app_id = kwargs['app_id']
-    body = request.data['state']
+    url = services.get_server_url(app_id)
+    body = {'state': 'KILLED'}
 
     if url[0:5] == 'https':
         url = url[8:]
@@ -61,3 +61,8 @@ def kill(request, **kwargs):
     conn.close()
 
     return Response(response)
+
+
+@api_view(['PUT'])
+def change_failover_plan(request, **kwargs):
+    pass

@@ -75,8 +75,8 @@ def submit(request_data):
     response = conn.getresponse().read().decode('utf-8')
     response = json.loads(response)
 
-    app_id = response['application-id']
-    body['application-id'] = str(app_id)
+    submitter_id = response['application-id']
+    body['application-id'] = str(submitter_id)
 
     maximum_resource_capacity = response['maximum-resource-capability']
     max_mem = maximum_resource_capacity['memory']
@@ -96,9 +96,15 @@ def submit(request_data):
     conn.request('POST', '/ws/v1/cluster/apps/', body=json.dumps(body), headers=headers)
     response = conn.getresponse().read().decode('utf-8')
 
-    polling.poll(lambda: wait_for_submit(url, app_id, request_data), step=3, poll_forever=True)
+    request_data_dump = json.dumps(request_data)
+    SubmitRequest(
+        app_id=submitter_id,
+        request_data=request_data_dump
+    ).save()
 
-    conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(app_id), body=json.dumps({"state": "KILLED"}),
+    polling.poll(lambda: wait_for_submit(url, submitter_id, request_data_dump), step=3, poll_forever=True)
+
+    conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(submitter_id), body=json.dumps({"state": "KILLED"}),
                  headers=headers)
     if conn.getresponse():
         pass
@@ -123,9 +129,8 @@ def conform_url_format(url):
     return url
 
 
-def wait_for_submit(url, app_id, request_data):
-    submitter_id = app_id
-    spark_app_id = app_id[:-4] + str(int(app_id[-4:]) + 1).zfill(4)
+def wait_for_submit(url, submitter_id, request_data_dump):
+    spark_app_id = submitter_id[:-4] + str(int(submitter_id[-4:]) + 1).zfill(4)
 
     submitter = requests.get('http://{}/ws/v1/cluster/apps/{}/state'
                              .format(url, submitter_id)).json()
@@ -138,14 +143,9 @@ def wait_for_submit(url, app_id, request_data):
                      spark_app_state['state'] == 'RUNNING'
 
     if submit_success:
-        request_data = json.dumps(request_data)
-        SubmitRequest(
-            app_id=submitter_id,
-            request_data=request_data
-        ).save()
         SubmitRequest(
             app_id=spark_app_id,
-            request_data=request_data
+            request_data=request_data_dump
         ).save()
 
     return submit_fail or submit_success
@@ -158,3 +158,12 @@ def resubmit(app_id):
         return HttpResponseBadRequest()
     request_data = json.loads(submit_request.request_data)
     return submit(request_data)
+
+
+def get_server_url(app_id):
+    try:
+        submit_request = SubmitRequest.objects.get(app_id=app_id)
+    except SubmitRequest.DoesNotExist:
+        return HttpResponseBadRequest()
+    request_data = json.loads(submit_request.request_data)
+    return request_data['url']
