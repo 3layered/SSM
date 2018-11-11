@@ -128,11 +128,10 @@ class RegisterApp extends Component {
                           {"key": "HOME", "value": home}]
             };
 
-        const httpBody = {
+        let httpBody = {
             "application-id": '', // this field will be filled in backend
             "application-name": "SUBMIT",
             "am-container-spec": {
-                "local-resources": {"entry": hdfsResources},
                 "commands": {"command": command},
                 "environment": environment
             },
@@ -142,6 +141,11 @@ class RegisterApp extends Component {
             "application-type": "SUBMIT",
             "keep-containers-across-application-attempts": "false"
         };
+
+        if (hdfsResources.length > 0) {
+            httpBody["am-container-spec"]["local-resources"] = {"entry": hdfsResources};
+        }
+
         return {"url": url, "body": httpBody, "memory": config.memory, "cores": config.core};
     }
     onTextInput = (e) => {

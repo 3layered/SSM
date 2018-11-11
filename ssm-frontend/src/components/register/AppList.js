@@ -44,15 +44,20 @@ class AppList extends Component {
             });
     }
     kill(appID) {
-        const server_url = 'http://localhost:8088';
         const backend_url = 'http://localhost:8000/api/v1/applications/kill/' + appID + '/';
-        const header = {'Content-Type': 'application/json'};
-        const state = {'state': 'KILLED'};
-        const body = {"url": server_url, "state": state}
 
-        axios.put(backend_url, body, header)
+        axios.post(backend_url)
             .then(response => {
                 if (response.data['state']) this.getAppList();
+            })
+            .catch(error => console.log(error));
+    }
+    resubmit(appID) {
+        const backend_url = 'http://localhost:8000/api/v1/applications/submit/' + appID + '/';
+
+        axios.post(backend_url)
+            .then(response => {
+                // if (response.data['state']) this.getAppList();
             })
             .catch(error => console.log(error));
     }
@@ -114,8 +119,13 @@ class AppList extends Component {
                      appInfo['state'] !== 'FAILED') ?
                         <Button onClick={() => this.kill(appInfo['id'])}>
                             Kill
-                        </Button>
-                        : <Table.Cell> </Table.Cell>}
+                        </Button> :
+                        appInfo['state'] !== 'FAILED' ?
+                            <Button onClick={() => this.resubmit(appInfo['id'])}>
+                                Resubmit
+                            </Button> :
+                            <Table.Cell> </Table.Cell>
+                }
             </Table.Row>
         )
     }

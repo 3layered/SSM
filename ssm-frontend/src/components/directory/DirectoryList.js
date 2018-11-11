@@ -110,7 +110,7 @@ class DirectoryList extends Component {
         </List>
       </Container>
     )
-  }
+  }z
 }
 
 export default DirectoryList
