@@ -27,7 +27,22 @@ class Header extends Component {
 					</Menu.Item>
 					<Menu.Item as={Link} to="/register">
 						Register
-          </Menu.Item>
+					</Menu.Item>
+					<Menu.Item as={Link} to="/dg">
+						Dependency Graph
+					</Menu.Item>
+					<Menu.Item as={Link} to="/directory">
+						Directory
+					</Menu.Item>
+					<Menu.Item as={Link} to="/environment">
+						Environment
+					</Menu.Item>
+					<Menu.Item as={Link} to="/executors">
+						Executors
+					</Menu.Item>
+					<Menu.Item as={Link} to="/stages">
+						Stages
+					</Menu.Item>
 					<Menu.Item as={Link} to="/streaming">
 						Streaming
 					</Menu.Item>

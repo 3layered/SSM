@@ -5,6 +5,8 @@ from .models import Application
 from django.http import JsonResponse
 from . import services
 
+import requests
+
 headers = {'Content-Type': 'application/json'}
 
 
@@ -66,3 +68,34 @@ def kill(request, **kwargs):
 @api_view(['PUT'])
 def change_failover_plan(request, **kwargs):
     pass
+
+
+@api_view(['GET'])
+def environment(request, app_id):
+    if request.method == 'GET':
+        r = requests.get(
+            'http://localhost:4040/api/v1/applications/'+app_id+'/environment')
+        return Response(r.json())
+
+@api_view(['GET'])
+def allexecutors(request, app_id):
+    if request.method == 'GET':
+        r = requests.get(
+            'http://localhost:4040/api/v1/applications/'+app_id+'/allexecutors')
+        return Response(r.json())
+
+# Returns latest stage information
+@api_view(['GET'])
+def stages(request, app_id):
+    if request.method == 'GET':
+        r = requests.get(
+            'http://localhost:4040/api/v1/applications/'+app_id+'/stages')
+        r = requests.get('http://localhost:4040/api/v1/applications/'+app_id+'/stages/'+str(r.json()[0]['stageId']))
+        return Response(r.json())
+
+@api_view(['GET'])
+def stage_detail(request, app_id, stage_id):
+    if request.method == 'GET':
+        r = requests.get(
+            'http://localhost:4040/api/v1/applications/'+app_id+'/stages/'+stage_id)
+        return Response(r.json())
