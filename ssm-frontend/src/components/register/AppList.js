@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { Table, Button, Container } from "semantic-ui-react";
 import axios from "axios";
+import {doUpdateAppList} from "../../actions";
+import connect from "react-redux/es/connect/connect";
 
 class AppList extends Component {
     constructor(props) {
@@ -11,27 +13,23 @@ class AppList extends Component {
             yarnServerRunning: true
         };
 
-        this.getAppList = this.getAppList.bind(this);
+        this.onRefreshAppList = this.onRefreshAppList.bind(this);
         this.kill = this.kill.bind(this);
         this.renderTable = this.renderTable.bind(this);
         this.renderTableHeader = this.renderTableHeader.bind(this);
         this.renderHeaderRow = this.renderHeaderRow.bind(this);
         this.renderTableBody = this.renderTableBody.bind(this);
         this.renderBodyRow = this.renderBodyRow.bind(this);
-
-        this.getAppList();
     }
-    getAppList() {
+    onRefreshAppList() {
         const server_url = 'http://localhost:8088';
         const backend_url = 'http://localhost:8000/api/v1/applications/';
         const header = {'Content-Type': 'application/json'};
         axios.post(backend_url, {"url": server_url}, header)
             .then(response => {
                     if (response.data['apps']) {
-                        const stateCopy = this.state;
-                        stateCopy.appList = response.data['apps']['app'];
-                        stateCopy.yarnServerRunning = true;
-                        this.setState(stateCopy);
+                        const appList = response.data['apps']['app'];
+                        this.props.updateAppList(appList);
                     }
                 }
             )
@@ -42,13 +40,14 @@ class AppList extends Component {
                     this.setState({yarnServerRunning: false})
                 }
             });
+
     }
     kill(appID) {
         const backend_url = 'http://localhost:8000/api/v1/applications/kill/' + appID + '/';
 
         axios.post(backend_url)
             .then(response => {
-                if (response.data['state']) this.getAppList();
+                if (response.data['state']) this.onRefreshAppList();
             })
             .catch(error => console.log(error));
     }
@@ -57,12 +56,12 @@ class AppList extends Component {
 
         axios.post(backend_url)
             .then(response => {
-                // if (response.data['state']) this.getAppList();
+                // if (response.data['state']) this.onRefreshAppList();
             })
             .catch(error => console.log(error));
     }
     renderTable() {
-        let appListCopy = this.state.appList;
+        let appListCopy = this.props.appList;
 
         appListCopy.sort((a, b) => {
             return a['id'] > b['id'] ? -1 : 1
@@ -136,7 +135,7 @@ class AppList extends Component {
                 <div>
                     <h3 align="center">Application list</h3>
                     <Container textAlign="right">
-                        < Button onClick={this.getAppList}> Refresh </Button>
+                        < Button onClick={this.onRefreshAppList}> Refresh </Button>
                     </Container>
                     {
                         this.state.yarnServerRunning ?
@@ -148,5 +147,19 @@ class AppList extends Component {
         )
     }
 }
+
+let mapStateToProps = (state) => {
+    return {
+        appList: state.appListReducer.appList
+    };
+};
+
+let mapDispatchToProps = (dispatch) => {
+    return {
+        updateAppList: (appList) => dispatch(doUpdateAppList(appList)),
+    }
+};
+
+AppList = connect(mapStateToProps, mapDispatchToProps)(AppList);
 
 export default AppList;
