@@ -24,7 +24,8 @@ urlpatterns = [
     path('<str:app_id>/allexecutors/', views.allexecutors),
     # Spark stages
     path('<str:app_id>/stages/', views.stages), # Returns latest stage information
-    # path('<str:app_id>/stages/<str:stage_id>/', views.stage_detail),
+    # path('<str:app_id>/stages/<int:stage_id>/', views.stage_detail),
+    path('<str:app_id>/stages/<str:stage_id>/', views.stage_detail),
     # Spark streaming
     path('<str:app_id>/streaming/', include('streaming.urls')),
 ]

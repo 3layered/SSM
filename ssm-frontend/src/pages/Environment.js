@@ -63,7 +63,7 @@ class Environment extends Component {
 			key += 1;
 		}
 		return (
-			<Container style={{ marginTop: "3em" }}>
+			<Container style={{ marginTop: "3em", marginBottom: "5em" }}>
 				<h1>Environment</h1>
 				{content}
 			</Container>

@@ -10,20 +10,17 @@ class Header extends Component {
 					<Menu.Item as={Link} to="/" header>
 						SSM
 					</Menu.Item>
+					<Menu.Item as={Link} to="/nodes">
+						Nodes
+					</Menu.Item>
 					<Menu.Item as={Link} to="/apps">
-						Apps
+						Applications
 					</Menu.Item>
 					<Menu.Item as={Link} to="/fop">
 						FoP
 					</Menu.Item>
 					<Menu.Item as={Link} to="/metric">
 						Metric
-					</Menu.Item>
-					<Menu.Item as={Link} to="/nodes">
-						Nodes
-					</Menu.Item>
-					<Menu.Item as={Link} to="/login">
-						Login
 					</Menu.Item>
 					<Menu.Item as={Link} to="/register">
 						Register
@@ -32,7 +29,7 @@ class Header extends Component {
 						Dependency Graph
 					</Menu.Item>
 					<Menu.Item as={Link} to="/directory">
-						Directory
+						HDFS
 					</Menu.Item>
 					<Menu.Item as={Link} to="/environment">
 						Environment

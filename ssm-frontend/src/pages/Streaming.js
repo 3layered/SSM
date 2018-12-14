@@ -85,7 +85,7 @@ class StreamingPage extends Component {
 			}))
 			.reverse();
 		return (
-			<Container style={{ marginTop: "3em" }}>
+			<Container style={{ marginTop: "3em", marginBottom: "5em" }}>
 				<h1> Streaming Statistics </h1>
 				<div>
 					{" "}
