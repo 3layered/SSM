@@ -1,9 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import http, json
-from .models import Application
-from django.http import JsonResponse
+from .models import Application, Dependency, FAILOVER_POLICY_CHOICES
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from . import services
+from django.db.models import Q
 
 headers = {'Content-Type': 'application/json'}
 
@@ -11,7 +12,7 @@ headers = {'Content-Type': 'application/json'}
 @api_view(['POST'])
 def submit(request, **kwargs):
     if request.method != 'POST':
-        return
+        return HttpResponseNotAllowed(['POST'])
 
     if 'app_id' in kwargs.keys():
         return services.resubmit(kwargs['app_id'])
@@ -23,10 +24,16 @@ def submit(request, **kwargs):
 @api_view(['POST'])
 def get_app_list(request):
     if request.method != 'POST':
-        return
+        return HttpResponseNotAllowed(['POST'])
 
     yarn_app_list = services.get_app_list_from_yarn(request.data)['apps']['app']
     services.update_apps_to_db(yarn_app_list)
+
+    all_apps = Application.objects.all()
+
+    for app in all_apps:
+        map(lambda dependency: dependency.delete(),
+            Dependency.objects.filter(Q(child_app__app_id=app.app_id) | Q(parent_app__app_id=app.app_id)))
 
     app_list = [{'id': app.app_id,
                  'backend-id': app.id,
@@ -34,7 +41,7 @@ def get_app_list(request):
                  'name': app.name,
                  'state': app.state,
                  'finalStatus': app.state}
-                for app in Application.objects.all()]
+                for app in all_apps]
 
     return JsonResponse({'apps': {'app': app_list}})
 
@@ -42,7 +49,7 @@ def get_app_list(request):
 @api_view(['POST'])
 def kill(request, **kwargs):
     if request.method != 'POST':
-        return
+        return HttpResponseNotAllowed(['POST'])
 
     app_id = kwargs['app_id']
     url = services.get_server_url(app_id)
@@ -63,6 +70,51 @@ def kill(request, **kwargs):
     return Response(response)
 
 
-@api_view(['PUT'])
-def change_failover_plan(request, **kwargs):
-    pass
+def render_dependency(dependency):
+    return {'parent_id': dependency.parent_app.app_id,
+            'child_id': dependency.child_app.app_id,
+            'failover_plan': dependency.failover_plan}
+
+
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def dependency(request):
+    if request.method == 'GET':
+        response = {'dependencies': [render_dependency(dependency) for dependency in Dependency.objects.all()]}
+        print(response)
+        return JsonResponse(response)
+
+    elif request.method == 'POST':
+        parent_app_id = request.data['parent_app_id']
+        child_app_id = request.data['child_app_id']
+        failover_plan = request.data['failover_plan']
+        try:
+            dependency = Dependency.objects.get(Q(child_app__app_id=child_app_id) & Q(parent_app__app_id=parent_app_id))
+        except Dependency.DoesNotExist:
+            try:
+                parent_app = Application.objects.get(app_id=parent_app_id)
+                child_app = Application.objects.get(app_id=child_app_id)
+                dependency = Dependency.objects.create()
+                dependency.parent_app = parent_app
+                dependency.child_app = child_app
+            except Application.DoesNotExist:
+                return HttpResponseBadRequest()
+
+        dependency.failover_plan = failover_plan.lower()
+        dependency.save()
+
+        return JsonResponse(render_dependency(dependency))
+
+    elif request.method == 'DELETE':
+        parent_app_id = request.data['parent_app_id']
+        child_app_id = request.data['child_app_id']
+
+        try:
+            dependency = Dependency.objects.get(Q(child_app__app_id=child_app_id) & Q(parent_app__app_id=parent_app_id))
+        except Dependency.DoesNotExist:
+            return HttpResponseBadRequest()
+
+        dependency.delete()
+        return Response()
+
+    else:
+        return HttpResponseNotAllowed(['GET', 'POST', 'DELETE'])

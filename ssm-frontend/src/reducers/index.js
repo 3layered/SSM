@@ -1,9 +1,10 @@
-import { UPDATE_APP_LIST } from '../actions';
+import { UPDATE_APP_LIST, UPDATE_DEPENDENCY_LIST } from '../actions';
 import { combineReducers } from 'redux';
 
 
 const initialState = {
-    appList: []
+    appList: [],
+    dependencyList: []
 };
 
 const appListReducer = (state = initialState, action) => {
@@ -11,6 +12,10 @@ const appListReducer = (state = initialState, action) => {
         case UPDATE_APP_LIST:
             return Object.assign({}, state, {
                 appList: action.appList
+            });
+        case UPDATE_DEPENDENCY_LIST:
+            return Object.assign({}, state, {
+                dependencyList: action.dependencyList
             });
         default:
             return state;

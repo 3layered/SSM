@@ -18,7 +18,7 @@ import Header from "./Header";
 
 import { AppList, JobList, StageList, StageMetric } from "./components/metric";
 import { connect } from 'react-redux';
-import { doUpdateAppList } from "./actions";
+import {doUpdateAppList, doUpdateDependencyList} from "./actions";
 import axios from "axios";
 
 class App extends Component {
@@ -31,14 +31,31 @@ class App extends Component {
     }
     async pollAppList() {
         const server_url = 'http://localhost:8088';
-        const backend_url = 'http://localhost:8000/api/v1/applications/';
+        const backend_app_url = 'http://localhost:8000/api/v1/applications/';
+        const backend_dependency_url = 'http://localhost:8000/api/v1/applications/dependency/';
         const header = {'Content-Type': 'application/json'};
         while (true) {
-            axios.post(backend_url, {"url": server_url}, header)
+            axios.post(backend_app_url, {"url": server_url}, header)
                 .then(response => {
                         if (response.data['apps']) {
                             const appList = response.data['apps']['app'];
                             this.props.updateAppList(appList);
+                        }
+                    }
+                )
+                .catch(error => {
+                    if (!error.response) {
+
+                    } else if(error.response.status === 404) {
+
+                    }
+                });
+            axios.get(backend_dependency_url)
+                .then(response => {
+                        if (response.data['dependencies']) {
+                            const dependencyList = response.data['dependencies'];
+                            this.props.updateDependencyList(dependencyList);
+                            // console.log(JSON.stringify(dependencyList))
                         }
                     }
                 )
@@ -88,13 +105,15 @@ class App extends Component {
 
 let mapStateToProps = (state) => {
     return {
-        appList: state.appListReducer.appList
+        appList: state.appListReducer.appList,
+		dependencyList: state.appListReducer.dependencyList
     };
 };
 
 let mapDispatchToProps = (dispatch) => {
     return {
         updateAppList: (appList) => dispatch(doUpdateAppList(appList)),
+        updateDependencyList: (dependencyList) => dispatch(doUpdateDependencyList(dependencyList)),
     }
 };
 

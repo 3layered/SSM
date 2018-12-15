@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Table, Button, Container } from "semantic-ui-react";
 import axios from "axios";
-import {doUpdateAppList} from "../../actions";
+import { doUpdateAppList } from "../../actions";
 import connect from "react-redux/es/connect/connect";
 
 class AppList extends Component {
