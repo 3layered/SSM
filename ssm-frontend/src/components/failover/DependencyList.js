@@ -17,12 +17,6 @@ class DependencyList extends Component {
         };
         this.handleSelect = this.handleSelect.bind(this);
     }
-    addDependency() {
-
-    }
-    deleteDependency() {
-
-    }
     changeFailoverPolicy() {
 
     }
@@ -43,25 +37,28 @@ class DependencyList extends Component {
     }
     addDependency() {
         const stateCopy = this.state;
-
-        const url = 'http://localhost:8000/api/v1/applications/dependency/';
         const header = {'Content-Type': 'application/json'};
-        const parent_id = stateCopy.from;
+        const parent_app_id = stateCopy.from;
         const child_app_id = stateCopy.to;
+        const url = 'http://localhost:8000/api/v1/applications/dependency/' + parent_app_id + '/' + child_app_id + '/';
         const failover_plan =
             stateCopy.edge === 0 ? 'ignore' :
                 stateCopy.edge === 1 ? 'cascade' : 'retry';
-        const body = {
-            'parent_app_id': parent_id,
-            'child_app_id': child_app_id,
-            'failover_plan': failover_plan
-        };
+        const body = {'failover_plan': failover_plan};
         axios.post(url, body, header);
+    }
+    deleteDependency() {
+        const stateCopy = this.state;
+        const parent_app_id = stateCopy.from;
+        const child_app_id = stateCopy.to;
+        const url = 'http://localhost:8000/api/v1/applications/dependency/' + parent_app_id + '/' + child_app_id + '/';
+        axios.delete(url)
     }
     renderDependency(appList, dependencyList) {
 
         appList = appList.filter(app => app.state !== 'FAILED' &&
-                                        app.state !== 'KILLED');
+                                        app.state !== 'KILLED' &&
+                                        app.state !== 'FINISHED');
 
         const graph = {
             nodes: appList.map(app => {return {id: app.id, label: app.id.slice(-4), physics: false}}),
@@ -69,7 +66,7 @@ class DependencyList extends Component {
         };
         const options = {
             layout: {
-                hierarchical: true
+                hierarchical: false
             },
             nodes: {
                 shape: 'box'
@@ -88,7 +85,7 @@ class DependencyList extends Component {
                 events.handleSelect(event)
             }
         };
-        return (<Graph graph={graph} options={options} events={events} />);
+        return (<Graph graph={graph} options={options} events={events}/>);
     }
     handleClickCheckbox(id) {
         this.setState({edge: id})
@@ -105,7 +102,7 @@ class DependencyList extends Component {
                 </Container>
                 <Divider/>
                 <Container>
-                    Register Failover Plan
+                    Dependency
                     <div>
                         Parent:
                         {this.state.selectFrom ? <span> Selecting </span> :
@@ -139,6 +136,7 @@ class DependencyList extends Component {
                         </div>
                     </div>
                     <Button onClick={() => this.addDependency()}> Register </Button>
+                    <Button onClick={() => this.deleteDependency()}> Delete Dependency </Button>
                 </Container>
             </Container>
         )

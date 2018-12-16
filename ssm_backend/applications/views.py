@@ -27,7 +27,8 @@ def get_app_list(request):
         return HttpResponseNotAllowed(['POST'])
 
     yarn_app_list = services.get_app_list_from_yarn(request.data)['apps']['app']
-    services.update_apps_to_db(yarn_app_list)
+    backend_app_list = services.update_apps_to_db(yarn_app_list)
+    services.sync_dependencies(backend_app_list)
 
     all_apps = Application.objects.all()
 
@@ -76,16 +77,15 @@ def render_dependency(dependency):
             'failover_plan': dependency.failover_plan}
 
 
-@api_view(['GET', 'POST', 'PUT', 'DELETE'])
-def dependency(request):
+@api_view(['GET', 'POST', 'DELETE'])
+def dependency(request, **kwargs):
     if request.method == 'GET':
-        response = {'dependencies': [render_dependency(dependency) for dependency in Dependency.objects.all()]}
-        print(response)
+        response = {'dependencies': [render_dependency(d) for d in Dependency.objects.all()]}
         return JsonResponse(response)
 
     elif request.method == 'POST':
-        parent_app_id = request.data['parent_app_id']
-        child_app_id = request.data['child_app_id']
+        parent_app_id = kwargs['parent_app_id']
+        child_app_id = kwargs['child_app_id']
         failover_plan = request.data['failover_plan']
         try:
             dependency = Dependency.objects.get(Q(child_app__app_id=child_app_id) & Q(parent_app__app_id=parent_app_id))
@@ -105,9 +105,8 @@ def dependency(request):
         return JsonResponse(render_dependency(dependency))
 
     elif request.method == 'DELETE':
-        parent_app_id = request.data['parent_app_id']
-        child_app_id = request.data['child_app_id']
-
+        parent_app_id = kwargs['parent_app_id']
+        child_app_id = kwargs['child_app_id']
         try:
             dependency = Dependency.objects.get(Q(child_app__app_id=child_app_id) & Q(parent_app__app_id=parent_app_id))
         except Dependency.DoesNotExist:

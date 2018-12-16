@@ -1,10 +1,11 @@
-from .models import Application, SubmitRequest
+from .models import Application, SubmitRequest, Dependency
 import requests, http, json, polling
 from rest_framework.response import Response
 from django.http import HttpResponseBadRequest
 
 
 def update_apps_to_db(yarn_app_list):
+    ret = []
     for app in yarn_app_list:
         try:
             backend_app = Application.objects.get(app_id=app['id'])
@@ -15,8 +16,39 @@ def update_apps_to_db(yarn_app_list):
             except SubmitRequest.DoesNotExist:
                 pass
             backend_app.save()
+            ret.append(backend_app)
         except Application.DoesNotExist:
             add_app_to_db(app)
+    return ret
+
+def handle_dependency(backend_app):
+    def _kill(backend_app):
+        body = {'state': 'KILLED'}
+        app_id = backend_app.app_id
+        print ("killing {}".format(app_id))
+        url = get_server_url(app_id)
+        conn = http.client.HTTPConnection(url)
+        conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(app_id), body=json.dumps(body), headers=headers)
+        conn.getresponse().read().decode('utf-8')
+        conn.close()
+
+    def _handle_dependency(d):
+        if d.failover_plan == 'cascade':
+            _kill(d.child_app)
+            d.delete()
+        elif d.failover_plan == 'retry':
+            resubmit(d.parent_app.id)
+            d.delete()
+
+    if backend_app.state in ['FAILED', 'KILLED', 'FINISHED']:
+        dependencies = Dependency.objects.filter(parent_app__app_id=backend_app.app_id)
+        for d in dependencies:
+            _handle_dependency(d)
+
+
+def sync_dependencies(backend_app_list):
+    for app in backend_app_list:
+        handle_dependency(app)
 
 
 def add_app_to_db(spark_app):
@@ -164,6 +196,6 @@ def get_server_url(app_id):
     try:
         submit_request = SubmitRequest.objects.get(app_id=app_id)
     except SubmitRequest.DoesNotExist:
-        return HttpResponseBadRequest()
+        return 'localhost:8088'
     request_data = json.loads(submit_request.request_data)
     return request_data['url']

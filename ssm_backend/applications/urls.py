@@ -7,5 +7,6 @@ urlpatterns = [
     path('submit/<str:app_id>/', views.submit),
     path('kill/<str:app_id>/', views.kill),
     # path('failover/<str:app_id>/', views.change_failover_plan),
-    path('dependency/', views.dependency)
+    path('dependency/', views.dependency),
+    path('dependency/<str:parent_app_id>/<str:child_app_id>/', views.dependency)
 ]
