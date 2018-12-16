@@ -1,29 +1,44 @@
 import React, { Component } from "react";
-import { Container, Table } from "semantic-ui-react";
+import { Container, Table, Dropdown } from "semantic-ui-react";
 import { BatchTable, Chart } from "../components/streaming";
 import axios from "axios";
-import { appID } from "./config";
+import { connect } from "react-redux";
 
 class Executors extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {};
+	}
+	input = (event, data) => {
+		this.setState({ appID: data.value });
 		axios
 			.get(
-				"http://localhost:8000/api/v1/applications/" + appID + "/allexecutors"
+				"http://localhost:8000/api/v1/applications/" +
+					data.value +
+					"/allexecutors"
 			)
 			.then(response => {
 				this.setState({ executors: response.data });
 			})
 			.catch(error => {
-				alert("statistics error");
+				alert("executors error");
+				this.setState({});
 			});
-	}
+	};
 	render() {
 		return (
 			<Container style={{ marginTop: "3em" }}>
 				<h1> Executors </h1>
-
+				<Dropdown
+					placeholder="Select App ID"
+					search
+					selection
+					options={this.props.appList
+						.map(app => ({ text: app.id, value: app.id }))
+						.reverse()}
+					onChange={this.input}
+					text={this.state.appID}
+				/>
 				{this.state.executors ? (
 					<Table celled>
 						<Table.Header>
@@ -57,4 +72,13 @@ class Executors extends Component {
 	}
 }
 
-export default Executors;
+let mapStateToProps = state => {
+	return {
+		appList: state.appListReducer.appList,
+		dependencyList: state.appListReducer.dependencyList
+	};
+};
+export default connect(
+	mapStateToProps,
+	null
+)(Executors);

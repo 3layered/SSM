@@ -41,8 +41,8 @@ class SchedulerMetric extends Component {
 						<Table.Row>
 							<Table.Cell>{this.state.type}</Table.Cell>
 							<Table.Cell>[MEMORY]</Table.Cell>
-							<Table.Cell>{"<memory:32, vCores:1>"}</Table.Cell>
-							<Table.Cell>{"<memory:1792, vCores:2>"}</Table.Cell>
+							<Table.Cell>{"<memory:128, vCores:1>"}</Table.Cell>
+							<Table.Cell>{"<memory:2048, vCores:2>"}</Table.Cell>
 							<Table.Cell>0</Table.Cell>
 						</Table.Row>
 					</Table.Body>

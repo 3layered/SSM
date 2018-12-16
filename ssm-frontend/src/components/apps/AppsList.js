@@ -35,7 +35,12 @@ class AppsList extends Component {
 		axios
 			.get("http://localhost:8000/api/v1/cluster/apps")
 			.then(response => {
-				this.setState({ apps: response.data.apps.app });
+				this.setState({
+					apps: response.data.apps.app.sort((a, b) => {
+						return a["id"] < b["id"] ? -1 : 1;
+					})
+				});
+				// console.log(response.data.apps.app);
 			})
 			.catch(error => {
 				alert("loading error");
@@ -70,33 +75,37 @@ class AppsList extends Component {
 
 					<Table.Body>
 						{this.state.apps
-							? this.state.apps.map((app, idx) => (
-									<Table.Row key={idx}>
-										<Table.Cell>{app.id}</Table.Cell>
-										<Table.Cell>{app.user}</Table.Cell>
-										<Table.Cell>{app.name}</Table.Cell>
-										<Table.Cell>{app.applicationType}</Table.Cell>
-										<Table.Cell>{app.queue}</Table.Cell>
-										<Table.Cell>{app.priority}</Table.Cell>
-										<Table.Cell>{timeConvert(app.startedTime)}</Table.Cell>
-										<Table.Cell>
-											{app.finishedTime ? timeConvert(app.finishedTime) : "N/A"}
-										</Table.Cell>
-										<Table.Cell>{app.state}</Table.Cell>
-										<Table.Cell>{app.finalStatus}</Table.Cell>
-										<Table.Cell>{app.runningContainers}</Table.Cell>
-										<Table.Cell>{app.allocatedVCores}</Table.Cell>
-										<Table.Cell>{app.allocatedMB}</Table.Cell>
-										<Table.Cell>{app.queueUsagePercentage}</Table.Cell>
-										<Table.Cell>{app.clusterUsagePercentage}</Table.Cell>
-										<Table.Cell>
-											<Progress percent={app.progress} indicating />
-										</Table.Cell>
-										<Table.Cell>
-											<a href={app.trackingUrl}>{app.trackingUI}</a>
-										</Table.Cell>
-									</Table.Row>
-							  ))
+							? this.state.apps
+									.map((app, idx) => (
+										<Table.Row key={idx}>
+											<Table.Cell>{app.id}</Table.Cell>
+											<Table.Cell>{app.user}</Table.Cell>
+											<Table.Cell>{app.name}</Table.Cell>
+											<Table.Cell>{app.applicationType}</Table.Cell>
+											<Table.Cell>{app.queue}</Table.Cell>
+											<Table.Cell>{app.priority}</Table.Cell>
+											<Table.Cell>{timeConvert(app.startedTime)}</Table.Cell>
+											<Table.Cell>
+												{app.finishedTime
+													? timeConvert(app.finishedTime)
+													: "N/A"}
+											</Table.Cell>
+											<Table.Cell>{app.state}</Table.Cell>
+											<Table.Cell>{app.finalStatus}</Table.Cell>
+											<Table.Cell>{app.runningContainers}</Table.Cell>
+											<Table.Cell>{app.allocatedVCores}</Table.Cell>
+											<Table.Cell>{app.allocatedMB}</Table.Cell>
+											<Table.Cell>{app.queueUsagePercentage}</Table.Cell>
+											<Table.Cell>{app.clusterUsagePercentage}</Table.Cell>
+											<Table.Cell>
+												<Progress percent={app.progress} indicating />
+											</Table.Cell>
+											<Table.Cell>
+												<a href={app.trackingUrl}>{app.trackingUI}</a>
+											</Table.Cell>
+										</Table.Row>
+									))
+									.reverse()
 							: null}
 					</Table.Body>
 				</Table>

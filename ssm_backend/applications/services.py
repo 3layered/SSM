@@ -11,6 +11,7 @@ def update_apps_to_db(yarn_app_list):
             backend_app = Application.objects.get(app_id=app['id'])
             backend_app.state = app['state']
             backend_app.finished_time = app['finishedTime']
+            backend_app.progress = app["progress"]
             try:
                 backend_app.submit_request = SubmitRequest.objects.get(app_id=app['id'])
             except SubmitRequest.DoesNotExist:
@@ -57,13 +58,15 @@ def add_app_to_db(spark_app):
     state = spark_app['state']
     started_time = spark_app['startedTime']
     finished_time = spark_app['finishedTime']
+    progress = spark_app['progress']
 
     Application(
         app_id=app_id,
         name=name,
         state=state,
         started_time=started_time,
-        finished_time=finished_time
+        finished_time=finished_time,
+        progress=progress
     ).save()
 
 
