@@ -40,7 +40,7 @@ def get_app_list(request):
 
     app_list = [{'id': app.app_id,
                  'backend-id': app.id,
-                 'user': 'TODO',
+                 'user': app.username,
                  'name': app.name,
                  'state': app.state,
                  'finalStatus': app.state,

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Form, Container } from "semantic-ui-react";
+import { Button, Form, Container, Message } from "semantic-ui-react";
 import axios from "axios";
 import { DirectoryList } from "../directory";
 
@@ -10,15 +10,15 @@ class RegisterApp extends Component {
 		this.state = {
 			errorMessages: [],
 			yarnConfig: {
-				server_url: "",
+				server_url: "localhost:8088",
 				emr: false,
 				command: "",
 				filePaths: [],
-				file: "",
+				file: "/",
 				memory: "512",
 				core: "1",
-				home: "",
-				spark_home: ""
+				home: "/",
+				spark_home: "/"
 			}
 		};
 
@@ -204,8 +204,15 @@ class RegisterApp extends Component {
 		];
 		this.setState(stateCopy);
 	};
+	reset = () => {
+		const s = this.state;
+		this.setState({
+			...s,
+			yarnConfig: { ...s.yarnConfig, filePaths: [], file: "/" }
+		});
+	};
 	handleselectedFile = event => {
-		// console.log(event.target.files[0].name);
+		console.log(event.target.files[0]);
 		this.setState({
 			yarnConfig: { ...this.state.yarnConfig, file: event.target.files[0].name }
 		});
@@ -220,44 +227,74 @@ class RegisterApp extends Component {
 					})}
 				</h4>
 				<Form>
-					<label>I am using Amazon EMR server</label>
+					{/* <label>I am using Amazon EMR server</label>
 					<input
 						type="checkbox"
 						value={this.state.yarnConfig.emr}
 						onClick={this.onClickCheckbox}
-					/>
-					<Form.Input
-						fluid
-						label="Server URL"
-						value={this.state.yarnConfig.server_url}
-						onChange={this.onTextInput}
-						name="server_url"
-					/>
+					/> */}
 
-					<Form.TextArea
-						label="File Path"
-						value={this.state.yarnConfig.file}
-						onChange={this.onTextInput}
-						name="file"
-					/>
-					<input type="file" name="" id="" onChange={this.handleselectedFile} />
-					<h4>HDFS</h4>
-					<DirectoryList setFile={this.setFile} url="localhost:50070" />
-					<Button className="float-right" onClick={() => this.addFile()}>
-						add file
-					</Button>
-					<Container>
-						{this.state.yarnConfig.filePaths.map((path, i) => {
-							return i === 0 ? (
-								<div>App: {path}</div>
-							) : (
-								<div>
-									Argument {i}: {path}
-								</div>
-							);
-						})}
-					</Container>
+					{/* <input type="file" name="" id="" onChange={this.handleselectedFile} /> */}
+					<b>HDFS</b>
+					<div style={{ border: "black solid 1px" }}>
+						<DirectoryList setFile={this.setFile} url="localhost:50070" />
+					</div>
+					{this.state.yarnConfig.filePaths.length !== 0 ? (
+						<Message>
+							<Message.Header>Argument Build</Message.Header>
+							{this.state.yarnConfig.filePaths.map((path, i) => {
+								return i === 0 ? (
+									<div>App: {path}</div>
+								) : (
+									<div>
+										Argument {i}: {path}
+									</div>
+								);
+							})}
+						</Message>
+					) : null}
 
+					<Form.Group widths="equal">
+						<Form.Input
+							fluid
+							label="Server URL"
+							value={this.state.yarnConfig.server_url}
+							onChange={this.onTextInput}
+							name="server_url"
+						/>
+
+						<Form.Input
+							fluid
+							label="Argument"
+							value={this.state.yarnConfig.file}
+							onChange={this.onTextInput}
+							name="file"
+						/>
+					</Form.Group>
+					{/* <div style={{ textAlign: "right" }}>
+						<Form.Button content="Argument Submit" />
+					</div> */}
+					<div style={{ textAlign: "right" }}>
+						{" "}
+						<Button onClick={() => this.addFile()}>Add Argument</Button>
+						<Button onClick={() => this.reset()}>Reset</Button>
+					</div>
+
+					<Form.Group widths="equal">
+						<Form.Input
+							label="Home dir"
+							value={this.state.yarnConfig.home}
+							onChange={this.onTextInput}
+							name="home"
+						/>
+
+						<Form.Input
+							label="Spark home dir"
+							value={this.state.yarnConfig.spark_home}
+							onChange={this.onTextInput}
+							name="spark_home"
+						/>
+					</Form.Group>
 					<Form.Group widths="equal">
 						<Form.Input
 							fluid
@@ -274,28 +311,13 @@ class RegisterApp extends Component {
 							name="core"
 						/>
 					</Form.Group>
-					<Form.Group widths="equal">
-						<Form.TextArea
-							label="Home dir"
-							value={this.state.yarnConfig.home}
-							onChange={this.onTextInput}
-							name="home"
-						/>
-
-						<Form.TextArea
-							label="Spark home dir"
-							value={this.state.yarnConfig.spark_home}
-							onChange={this.onTextInput}
-							name="spark_home"
-						/>
-					</Form.Group>
 				</Form>
 				<Container textAlign="right">
 					<Button
 						className="float-right"
 						onClick={() => this.submit(this.state.yarnConfig)}
 					>
-						submit
+						Submit
 					</Button>
 				</Container>
 			</Container>
