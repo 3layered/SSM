@@ -12,7 +12,11 @@ import {
 	AppDetail,
 	AttemptDetail,
 	Streaming,
-	Directory
+	Directory,
+	DependencyGraph,
+	Environment,
+	Executors,
+	Stages
 } from "./pages";
 import Header from "./Header";
 
@@ -96,6 +100,10 @@ class App extends Component {
 					<Route exact path="/login" component={Login} />
 					<Route exact path="/streaming" component={Streaming} />
 					<Route exact path="/directory" component={Directory} />
+					<Route exact path="/dg" component={DependencyGraph} />
+					<Route exact path="/environment" component={Environment} />
+					<Route exact path="/executors" component={Executors} />
+					<Route exact path="/stages" component={Stages} />
 					<Route component={NoMatch} />
 				</Switch>
 			</div>

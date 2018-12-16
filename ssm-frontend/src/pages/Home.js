@@ -11,7 +11,6 @@ class Home extends Component {
 	render() {
 		return (
 			<Container style={{ marginTop: "3em" }}>
-				SSM HOME
 				<ClusterMetric />
 				<ClusterNodeMetric />
 				<SchedulerMetric />

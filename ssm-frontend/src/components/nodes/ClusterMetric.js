@@ -1,7 +1,21 @@
 import React, { Component } from "react";
 import { Container, Table } from "semantic-ui-react";
+import axios from "axios";
 
 class ClusterMetric extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {};
+		axios
+			.get("http://localhost:8000/api/v1/cluster/metrics")
+			.then(response => {
+				this.setState({ ...response.data.clusterMetrics });
+			})
+			.catch(error => {
+				alert("loading error");
+			});
+	}
+
 	render() {
 		return (
 			<Container style={{ marginTop: "1em" }}>
@@ -25,17 +39,19 @@ class ClusterMetric extends Component {
 
 					<Table.Body>
 						<Table.Row>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0 B</Table.Cell>
-							<Table.Cell>3.50 GB</Table.Cell>
-							<Table.Cell>0 B</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>4</Table.Cell>
-							<Table.Cell>0</Table.Cell>
+							<Table.Cell>{this.state.appsSubmitted}</Table.Cell>
+							<Table.Cell>{this.state.appsPending}</Table.Cell>
+							<Table.Cell>{this.state.appsRunning}</Table.Cell>
+							<Table.Cell>
+								{this.state.appsCompleted + this.state.appsFailed}
+							</Table.Cell>
+							<Table.Cell>{this.state.containersAllocated}</Table.Cell>
+							<Table.Cell>{this.state.allocatedMB} MB</Table.Cell>
+							<Table.Cell>{this.state.totalMB} GB</Table.Cell>
+							<Table.Cell>{this.state.reservedMB} MB</Table.Cell>
+							<Table.Cell>{this.state.allocatedVirtualCores}</Table.Cell>
+							<Table.Cell>{this.state.totalVirtualCores}</Table.Cell>
+							<Table.Cell>{this.state.reservedVirtualCores}</Table.Cell>
 						</Table.Row>
 					</Table.Body>
 				</Table>

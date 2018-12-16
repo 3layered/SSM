@@ -1,8 +1,26 @@
 import React, { Component } from "react";
 import { Container, Table } from "semantic-ui-react";
+import axios from "axios";
 
+/// NOT WORKING WELL
+/// No API??
 class SchedulerMetric extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {};
+		axios
+			.get("http://localhost:8000/api/v1/cluster/scheduler")
+			.then(response => {
+				// console.log(response.data.scheduler.schedulerInfo);
+				this.setState({ ...response.data.scheduler.schedulerInfo });
+				// this.setState({ ...response.data.clusterMetrics });
+			})
+			.catch(error => {
+				alert("loading error");
+			});
+	}
 	render() {
+		// console.log(this.state);
 		return (
 			<Container style={{ marginTop: "1em" }}>
 				<h4>Scheduler Metric</h4>
@@ -21,7 +39,7 @@ class SchedulerMetric extends Component {
 
 					<Table.Body>
 						<Table.Row>
-							<Table.Cell>Capacity Scheduler</Table.Cell>
+							<Table.Cell>{this.state.type}</Table.Cell>
 							<Table.Cell>[MEMORY]</Table.Cell>
 							<Table.Cell>{"<memory:32, vCores:1>"}</Table.Cell>
 							<Table.Cell>{"<memory:1792, vCores:2>"}</Table.Cell>

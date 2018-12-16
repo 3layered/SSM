@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Container, Table } from "semantic-ui-react";
 import { BatchTable, Chart } from "../components/streaming";
 import axios from "axios";
+import { appID } from "./config";
 
 class StreamingPage extends Component {
 	constructor(props) {
@@ -24,7 +25,6 @@ class StreamingPage extends Component {
 			completedBatches: [],
 			activeBatches: []
 		};
-		const appID = "local-1539916952874";
 		axios
 			.get(
 				"http://localhost:8000/api/v1/applications/" +
@@ -85,7 +85,7 @@ class StreamingPage extends Component {
 			}))
 			.reverse();
 		return (
-			<Container style={{ marginTop: "3em" }}>
+			<Container style={{ marginTop: "3em", marginBottom: "5em" }}>
 				<h1> Streaming Statistics </h1>
 				<div>
 					{" "}

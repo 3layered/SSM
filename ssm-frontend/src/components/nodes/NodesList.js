@@ -1,10 +1,50 @@
 import React, { Component } from "react";
 import { Container, Table, Icon, Menu } from "semantic-ui-react";
-
+import axios from "axios";
+const timeConvert = timestamp => {
+	// var a = new Date(timestamp * 1000);
+	var a = new Date(timestamp);
+	var months = [
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
+	];
+	var year = a.getFullYear();
+	var month = months[a.getMonth()];
+	var date = a.getDate();
+	var hour = a.getHours();
+	var min = a.getMinutes();
+	var sec = a.getSeconds();
+	var time =
+		date + " " + month + " " + year + " " + hour + ":" + min + ":" + sec;
+	return time;
+};
 class NodesList extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {};
+		axios
+			.get("http://localhost:8000/api/v1/cluster/nodes")
+			.then(response => {
+				this.setState({ nodes: response.data.nodes.node });
+			})
+			.catch(error => {
+				alert("loading error");
+			});
+	}
 	render() {
 		return (
 			<Container style={{ marginTop: "1em" }}>
+				<h4>Node List</h4>
 				<Table celled>
 					<Table.Header>
 						<Table.Row>
@@ -25,64 +65,28 @@ class NodesList extends Component {
 					</Table.Header>
 
 					<Table.Body>
-						<Table.Row>
-							<Table.Cell> </Table.Cell>
-							<Table.Cell>/default-rack</Table.Cell>
-							<Table.Cell>RUNNING</Table.Cell>
-							<Table.Cell>
-								ip-172-31-29-100.ap-northeast-2.compute.internal:8041
-							</Table.Cell>
-							<Table.Cell>
-								ip-172-31-29-100.ap-northeast-2.compute.internal:8042
-							</Table.Cell>
-							<Table.Cell>Mon Oct 08 12:14:31 +0000 2018</Table.Cell>
-							<Table.Cell> </Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0 B</Table.Cell>
-							<Table.Cell>1.75 GB</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>2</Table.Cell>
-							<Table.Cell>2.8.4-amzn-1</Table.Cell>
-						</Table.Row>
-						<Table.Row>
-							<Table.Cell> </Table.Cell>
-							<Table.Cell>/default-rack</Table.Cell>
-							<Table.Cell>RUNNING</Table.Cell>
-							<Table.Cell>
-								ip-172-31-24-31.ap-northeast-2.compute.internal:8041
-							</Table.Cell>
-							<Table.Cell>
-								ip-172-31-24-31.ap-northeast-2.compute.internal:8042
-							</Table.Cell>
-							<Table.Cell>Mon Oct 08 12:14:33 +0000 2018</Table.Cell>
-							<Table.Cell> </Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>0 B</Table.Cell>
-							<Table.Cell>1.75 GB</Table.Cell>
-							<Table.Cell>0</Table.Cell>
-							<Table.Cell>2</Table.Cell>
-							<Table.Cell>2.8.4-amzn-1</Table.Cell>
-						</Table.Row>
+						{this.state.nodes
+							? this.state.nodes.map((node, idx) => (
+									<Table.Row key={idx}>
+										<Table.Cell>{node.amNodeLabelExpression}</Table.Cell>
+										<Table.Cell>{node.rack}</Table.Cell>
+										<Table.Cell>{node.state}</Table.Cell>
+										<Table.Cell>{node.nodeHostName}</Table.Cell>
+										<Table.Cell>{node.nodeHTTPAddress}</Table.Cell>
+										<Table.Cell>
+											{timeConvert(node.lastHealthUpdate)}
+										</Table.Cell>
+										<Table.Cell>{node.healthReport}</Table.Cell>
+										<Table.Cell>{node.numContainers}</Table.Cell>
+										<Table.Cell>{node.usedMemoryMB}</Table.Cell>
+										<Table.Cell>{node.availMemoryMB}</Table.Cell>
+										<Table.Cell>{node.usedVirtualCores}</Table.Cell>
+										<Table.Cell>{node.availableVirtualCores}</Table.Cell>
+										<Table.Cell>{node.version}</Table.Cell>
+									</Table.Row>
+							  ))
+							: null}
 					</Table.Body>
-
-					<Table.Footer>
-						<Table.Row>
-							<Table.HeaderCell colSpan="3">
-								<Menu floated="right" pagination>
-									<Menu.Item as="a" icon>
-										<Icon name="chevron left" />
-									</Menu.Item>
-									<Menu.Item as="a">1</Menu.Item>
-									<Menu.Item as="a">2</Menu.Item>
-									<Menu.Item as="a">3</Menu.Item>
-									<Menu.Item as="a">4</Menu.Item>
-									<Menu.Item as="a" icon>
-										<Icon name="chevron right" />
-									</Menu.Item>
-								</Menu>
-							</Table.HeaderCell>
-						</Table.Row>
-					</Table.Footer>
 				</Table>
 			</Container>
 		);
