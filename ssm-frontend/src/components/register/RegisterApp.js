@@ -86,7 +86,7 @@ class RegisterApp extends Component {
         for (let i = 0; i < config.filePaths.length; i++) {
             let path = config.filePaths[i];
             let trimmedPath = path.trim();
-            if (trimmedPath.substring(0, 7) === 'hdfs://') {
+            if (trimmedPath.substring(0, 7) === 'hdfs://' && i === 0) {
                 let splitPath = trimmedPath.split(" ");
                 let key = "HDFS_" + i;
                 let hdfsPath = splitPath[0];

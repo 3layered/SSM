@@ -34,11 +34,11 @@ def handle_dependency(backend_app):
 
     def _handle_dependency(d):
         if d.failover_plan == 'cascade':
+            d.delete()
             _kill(d.child_app)
-            d.delete()
         elif d.failover_plan == 'retry':
-            resubmit(d.parent_app.id)
             d.delete()
+            resubmit(d.parent_app.app_id)
 
     if backend_app.state in ['FAILED', 'KILLED', 'FINISHED']:
         dependencies = Dependency.objects.filter(parent_app__app_id=backend_app.app_id)
@@ -135,12 +135,12 @@ def submit(request_data):
     ).save()
 
     polling.poll(lambda: wait_for_submit(url, submitter_id, request_data_dump), step=3, poll_forever=True)
-
+    """
     conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(submitter_id), body=json.dumps({"state": "KILLED"}),
                  headers=headers)
     if conn.getresponse():
         pass
-
+    """
     conn.close()
 
     return Response(response)
@@ -184,12 +184,14 @@ def wait_for_submit(url, submitter_id, request_data_dump):
 
 
 def resubmit(app_id):
+    print('resubmit {}'.format(app_id))
     try:
         submit_request = SubmitRequest.objects.get(app_id=app_id)
+        request_data = json.loads(submit_request.request_data)
+        return submit(request_data)
     except SubmitRequest.DoesNotExist:
-        return HttpResponseBadRequest()
-    request_data = json.loads(submit_request.request_data)
-    return submit(request_data)
+        request_data = {'url': 'localhost:8088', 'memory': DEFAULT_MEM, 'cores': DEFAULT_CORE, 'body': DEFAULT_BODY}
+        return submit(request_data)
 
 
 def get_server_url(app_id):
@@ -199,3 +201,54 @@ def get_server_url(app_id):
         return 'localhost:8088'
     request_data = json.loads(submit_request.request_data)
     return request_data['url']
+
+
+DEFAULT_MEM = 128
+DEFAULT_CORE = 1
+DEFAULT_BODY = {
+    "application-id": "application_1539593635508_0064",
+    "application-name":"SUBMIT",
+    "am-container-spec":
+        {
+            "local-resources":
+                {
+                    "entry":
+                        [
+                            {
+                                "key":"pi",
+                                "value":
+                                    {
+                                        "resource":"hdfs://ip-172-31-3-155.us-west-2.compute.internal:8020/user/hadoop/pi.py",
+                                        "type":"FILE",
+                                        "visibility":"APPLICATION",
+                                        "size": 43004,
+                                        "timestamp": 1539593933307
+                                    }
+                            }
+                        ]
+                },
+            "commands":
+                {
+                    "command":"{{SPARK_HOME}}/bin/spark-submit --master yarn --executor-memory 1G /home/hadoop/pi.py"
+                },
+            "environment":
+                {
+                    "entry":
+                        [
+                            {
+                                "key": "SPARK_HOME",
+                                "value": "/usr/lib/spark"
+                            }
+                        ]
+                }
+        },
+    "unmanaged-AM": False,
+    "max-app-attempts":1,
+    "resource":
+        {
+            "memory":DEFAULT_MEM,
+            "vCores":DEFAULT_CORE
+        },
+    "application-type":"SUBMIT",
+    "keep-containers-across-application-attempts":False
+};

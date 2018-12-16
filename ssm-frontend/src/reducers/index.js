@@ -11,7 +11,7 @@ const appListReducer = (state = initialState, action) => {
     switch(action.type) {
         case UPDATE_APP_LIST:
             return Object.assign({}, state, {
-                appList: action.appList
+                appList: action.appList.filter(app => app['name'] !== 'SUBMIT')
             });
         case UPDATE_DEPENDENCY_LIST:
             return Object.assign({}, state, {

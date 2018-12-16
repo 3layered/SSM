@@ -69,7 +69,7 @@ def kill(request, **kwargs):
     response = json.loads(response)
 
     conn.close()
-
+    print('killed {}'.format(app_id))
     return Response(response)
 
 
