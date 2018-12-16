@@ -99,7 +99,7 @@ def get_app_list_from_yarn(request_data):
 headers = {'Content-Type': 'application/json'}
 
 
-def submit(request_data):
+def submit(request_data, resubmit=False):
     url = conform_url_format(request_data['url'])
 
     if url[0:5] == 'https':
@@ -142,9 +142,9 @@ def submit(request_data):
         app_id=submitter_id,
         request_data=request_data_dump
     ).save()
-    """
+
     polling.poll(lambda: wait_for_submit(url, submitter_id, request_data_dump), step=3, poll_forever=True)
-    
+    """    
     conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(submitter_id), body=json.dumps({"state": "KILLED"}),
                  headers=headers)
     if conn.getresponse():
@@ -197,10 +197,9 @@ def resubmit(app_id):
     try:
         submit_request = SubmitRequest.objects.get(app_id=app_id)
         request_data = json.loads(submit_request.request_data)
-        return submit(request_data)
+        return submit(request_data, resubmit=True)
     except SubmitRequest.DoesNotExist:
-        request_data = {'url': 'http://localhost:8088', 'memory': DEFAULT_MEM, 'cores': DEFAULT_CORE, 'body': DEFAULT_BODY}
-        return submit(request_data)
+        return HttpResponseBadRequest()
 
 
 def get_server_url(app_id):

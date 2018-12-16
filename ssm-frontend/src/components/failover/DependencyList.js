@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import {
 	Button,
+	List,
 	Checkbox,
 	Segment,
 	Input,
@@ -20,25 +21,98 @@ class DependencyList extends Component {
 			from: null,
 			to: null,
 			edge: null,
+			/*
 			selectFrom: false,
 			selectTo: false
+			*/
+			nodeDetail: null
 		};
 		this.handleSelect = this.handleSelect.bind(this);
 	}
-	changeFailoverPolicy() {}
-
 	handleSelect(event) {
 		/*
         const url = 'http://localhost:8000/api/v1/applications/dependency/';
         axios.get(url)
             .then(r => console.log(JSON.stringify(r)));
             */
+		/*
 		if (event.nodes) {
 			if (this.state.selectFrom) {
 				this.setState({ from: event.nodes[0], selectFrom: false });
 			} else if (this.state.selectTo) {
 				this.setState({ to: event.nodes[0], selectTo: false });
 			}
+		}
+		*/
+        if (event.nodes) {
+            this.setState({nodeDetail: event.nodes[0]})
+        }
+	}
+	renderApp(app) {
+		return (
+			<Container>
+				<List>
+					<List.Item>{"  "} Application id: {" " + app.id}</List.Item>
+					<List.Item>{"  "} Application name: {" " + app.name}</List.Item>
+				</List>
+				<div>
+					<Button onClick={()=>this.setState({from: app.id})}>
+						Set as parent </Button>
+					<Button onClick={()=>this.setState({to: app.id})}>
+						Set as child </Button>
+				</div>
+                <div>
+					{"  "} Failover Policy
+                    <div>
+                        {"  "} {"  "} <Checkbox
+                            label="IGNORE"
+                            checked={this.state.edge === 0}
+                            onClick={() => this.handleClickCheckbox(0)}
+                        />
+                    </div>
+                    <div>
+                        {"  "} {"  "} <Checkbox
+                            label="CASCADE"
+                            checked={this.state.edge === 1}
+                            onClick={() => this.handleClickCheckbox(1)}
+                        />
+                    </div>
+                    <div>
+                        {"  "} {"  "} <Checkbox
+                            label="RETRY"
+                            checked={this.state.edge === 2}
+                            onClick={() => this.handleClickCheckbox(2)}
+                        />
+                    </div>
+                </div>
+				<div>
+                    <Button onClick={() => this.addDependency()}> Register </Button>
+                    <Button onClick={() => this.deleteDependency()}>
+                        {" "}
+                        Delete Dependency{" "}
+                    </Button>
+				</div>
+			</Container>
+		)
+	}
+	renderNodeDetail(appId) {
+		if (appId) {
+            let app = this.props.appList.find(app => app.id === appId);
+            return this.renderApp(app)
+		} else {
+			return (<Container> {} </Container>)
+		}
+
+	}
+	edge2fop(edge) {
+		if (edge === 0) {
+			return 'ignore'
+		} else if (edge === 1) {
+			return 'cascade'
+		} else if (edge === 2) {
+			return 'retry'
+		} else {
+			return null
 		}
 	}
 	addDependency() {
@@ -52,14 +126,10 @@ class DependencyList extends Component {
 			"/" +
 			child_app_id +
 			"/";
-		const failover_plan =
-			stateCopy.edge === 0
-				? "ignore"
-				: stateCopy.edge === 1
-				? "cascade"
-				: "retry";
+		const failover_plan = this.edge2fop(stateCopy.edge)
 		const body = { failover_plan: failover_plan };
 		axios.post(url, body, header);
+		this.setState({from: null, to: null, edge: null})
 	}
 	deleteDependency() {
 		const stateCopy = this.state;
@@ -124,22 +194,41 @@ class DependencyList extends Component {
 	handleClickCheckbox(id) {
 		this.setState({ edge: id });
 	}
+	newDependencyList(deppendencyList) {
+		const stateCopy = this.state;
+		let edgemsg = 'Select failover policy\n';
+		const fop = this.edge2fop(this.state.edge);
+		if (fop) {
+			edgemsg += '(' + fop.toUpperCase() + ' selected)'
+		}
+		if (stateCopy.from && stateCopy.to) {
+            return [{'parent_id': stateCopy.from,
+                     'child_id': stateCopy.to,
+            		 'failover_plan': edgemsg}].concat(deppendencyList);
+		} else {
+			return deppendencyList;
+		}
+	}
 	render() {
 		return (
 			<Container>
 				<Container>
-					<h4>Dependency List</h4>
+					<h4>Dependency Graph</h4>
 					{/* {JSON.stringify(this.state)} */}
 					<div style={{ border: "solid black 1px" }}>
 						{this.renderDependency(
 							this.props.appList,
-							this.props.dependencyList
+							this.newDependencyList(this.props.dependencyList)
 						)}
 					</div>
 				</Container>
 				<Divider />
 				<Container>
-					Dependency
+					<h4> Application Detail </h4>
+					<div> {this.renderNodeDetail(this.state.nodeDetail)} </div>
+				</Container>
+				<Container>
+					{/*Dependency
 					<div>
 						Parent:
 						{this.state.selectFrom ? (
@@ -160,6 +249,7 @@ class DependencyList extends Component {
 							</Button>
 						)}
 					</div>
+
 					<div>
 						Child:
 						{this.state.selectTo ? (
@@ -180,35 +270,7 @@ class DependencyList extends Component {
 							</Button>
 						)}
 					</div>
-					<div>
-						Failover Policy
-						<div>
-							<Checkbox
-								label="IGNORE"
-								checked={this.state.edge === 0}
-								onClick={() => this.handleClickCheckbox(0)}
-							/>
-						</div>
-						<div>
-							<Checkbox
-								label="CASCADE"
-								checked={this.state.edge === 1}
-								onClick={() => this.handleClickCheckbox(1)}
-							/>
-						</div>
-						<div>
-							<Checkbox
-								label="RETRY"
-								checked={this.state.edge === 2}
-								onClick={() => this.handleClickCheckbox(2)}
-							/>
-						</div>
-					</div>
-					<Button onClick={() => this.addDependency()}> Register </Button>
-					<Button onClick={() => this.deleteDependency()}>
-						{" "}
-						Delete Dependency{" "}
-					</Button>
+					*/}
 				</Container>
 			</Container>
 		);
