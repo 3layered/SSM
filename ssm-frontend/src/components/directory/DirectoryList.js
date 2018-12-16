@@ -17,9 +17,9 @@ class DirectoryList extends Component {
 			})
 			.catch(error => {
 				alert('error');
-        console.log(error)
-        console.log(error.status)
-        console.log(error.code)
+                console.log(error)
+                console.log(error.status)
+                console.log(error.code)
 			});
 	}
   toggle_dir(path){
@@ -53,7 +53,6 @@ class DirectoryList extends Component {
 			});
   }
   find_dir(idx, parent){
-    console.log(this.state.tree)
     if (typeof(this.state.tree) === 'undefined') {
       return;
     } else {
@@ -102,7 +101,6 @@ class DirectoryList extends Component {
     }
   }
   render(){
-    console.log(typeof(this.state.tree))
     return(
       <Container>
         <List>

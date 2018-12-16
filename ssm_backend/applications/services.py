@@ -28,6 +28,10 @@ def handle_dependency(backend_app):
         app_id = backend_app.app_id
         print ("killing {}".format(app_id))
         url = get_server_url(app_id)
+        if url[0:5] == 'https':
+            url = url[8:]
+        elif url[0:4] == 'http':
+            url = url[7:]
         conn = http.client.HTTPConnection(url)
         conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(app_id), body=json.dumps(body), headers=headers)
         conn.getresponse().read().decode('utf-8')
@@ -136,9 +140,9 @@ def submit(request_data):
         app_id=submitter_id,
         request_data=request_data_dump
     ).save()
-
-    polling.poll(lambda: wait_for_submit(url, submitter_id, request_data_dump), step=3, poll_forever=True)
     """
+    polling.poll(lambda: wait_for_submit(url, submitter_id, request_data_dump), step=3, poll_forever=True)
+    
     conn.request('PUT', '/ws/v1/cluster/apps/{}/state'.format(submitter_id), body=json.dumps({"state": "KILLED"}),
                  headers=headers)
     if conn.getresponse():
@@ -193,7 +197,7 @@ def resubmit(app_id):
         request_data = json.loads(submit_request.request_data)
         return submit(request_data)
     except SubmitRequest.DoesNotExist:
-        request_data = {'url': 'localhost:8088', 'memory': DEFAULT_MEM, 'cores': DEFAULT_CORE, 'body': DEFAULT_BODY}
+        request_data = {'url': 'http://localhost:8088', 'memory': DEFAULT_MEM, 'cores': DEFAULT_CORE, 'body': DEFAULT_BODY}
         return submit(request_data)
 
 

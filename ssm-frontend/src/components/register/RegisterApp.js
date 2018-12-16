@@ -141,7 +141,7 @@ class RegisterApp extends Component {
             "application-type": "SUBMIT",
             "keep-containers-across-application-attempts": "false"
         };
-
+        console.log(command)
         if (hdfsResources.length > 0) {
             httpBody["am-container-spec"]["local-resources"] = {"entry": hdfsResources};
         }

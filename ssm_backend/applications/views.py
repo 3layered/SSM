@@ -34,10 +34,6 @@ def get_app_list(request):
 
     all_apps = Application.objects.all()
 
-    for app in all_apps:
-        map(lambda dependency: dependency.delete(),
-            Dependency.objects.filter(Q(child_app__app_id=app.app_id) | Q(parent_app__app_id=app.app_id)))
-
     app_list = [{'id': app.app_id,
                  'backend-id': app.id,
                  'user': 'TODO',

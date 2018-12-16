@@ -102,7 +102,6 @@ class AppList extends Component {
 		);
 	}
 	renderBodyRow(appInfo) {
-		console.log(appInfo);
 		return (
 			<Table.Row key={appInfo["id"]}>
 				<Table.Cell>{appInfo["id"]}</Table.Cell>
