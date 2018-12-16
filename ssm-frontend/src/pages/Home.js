@@ -4,17 +4,21 @@ import {
 	ClusterMetric,
 	ClusterNodeMetric,
 	SchedulerMetric,
-	ClusterOverview
+	ClusterOverview,
+	NodesList,
+	NodeLabels
 } from "../components/nodes";
 
 class Home extends Component {
 	render() {
 		return (
-			<Container style={{ marginTop: "3em" }}>
+			<Container style={{ marginTop: "3em", marginBottom: "3em" }}>
 				<ClusterMetric />
 				<ClusterNodeMetric />
 				<SchedulerMetric />
 				<ClusterOverview />
+				<NodesList />
+				<NodeLabels />
 			</Container>
 		);
 	}

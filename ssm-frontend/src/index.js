@@ -2,11 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-import ssmReducer from './reducers';
+import { createStore } from "redux";
+import { Provider } from "react-redux";
+import ssmReducer from "./reducers";
 import "semantic-ui-css/semantic.min.css";
-
 
 const store = createStore(ssmReducer);
 

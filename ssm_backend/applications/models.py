@@ -13,6 +13,7 @@ class Application(models.Model):
     state = models.CharField(max_length=20)
     started_time = models.CharField(max_length=20)
     finished_time = models.CharField(max_length=20)
+    progress = models.IntegerField(default=0)
 
     submit_request = models.ForeignKey('SubmitRequest', null=True, on_delete=models.DO_NOTHING)
 

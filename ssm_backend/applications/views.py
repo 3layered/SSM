@@ -43,7 +43,8 @@ def get_app_list(request):
                  'user': 'TODO',
                  'name': app.name,
                  'state': app.state,
-                 'finalStatus': app.state}
+                 'finalStatus': app.state,
+                 'progress': app.progress}
                 for app in all_apps]
 
     return JsonResponse({'apps': {'app': app_list}})
