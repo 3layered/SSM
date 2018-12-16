@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Table, Button, Container, Progress } from "semantic-ui-react";
+import { Table, Button, Container, Progress, Icon } from "semantic-ui-react";
 import axios from "axios";
 import { doUpdateAppList } from "../../actions";
 import connect from "react-redux/es/connect/connect";
@@ -129,8 +129,14 @@ class AppList extends Component {
 			<Container style={{ marginTop: "3em", marginBottom: "3em" }}>
 				<div>
 					<h3 align="center">Application list</h3>
-					<Container textAlign="right">
-						<Button onClick={this.onRefreshAppList}> Refresh </Button>
+					<Container textAlign="right" style={{ marginBottom: "1em" }}>
+						{/* <Button onClick={this.onRefreshAppList}> Refresh </Button> */}
+						<Button animated="vertical">
+							<Button.Content hidden>Refresh</Button.Content>
+							<Button.Content visible>
+								<Icon name="refresh" />
+							</Button.Content>
+						</Button>
 					</Container>
 					{this.state.yarnServerRunning ? (
 						<div> {this.renderTable()} </div>

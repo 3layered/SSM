@@ -63,6 +63,7 @@ def add_app_to_db(spark_app):
     started_time = spark_app['startedTime']
     finished_time = spark_app['finishedTime']
     progress = spark_app['progress']
+    username = spark_app['user']
 
     Application(
         app_id=app_id,
@@ -70,7 +71,8 @@ def add_app_to_db(spark_app):
         state=state,
         started_time=started_time,
         finished_time=finished_time,
-        progress=progress
+        progress=progress,
+        username=username
     ).save()
 
 

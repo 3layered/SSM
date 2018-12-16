@@ -14,6 +14,7 @@ class Application(models.Model):
     started_time = models.CharField(max_length=20)
     finished_time = models.CharField(max_length=20)
     progress = models.IntegerField(default=0)
+    username = models.CharField(max_length=100, default='haha')
 
     submit_request = models.ForeignKey('SubmitRequest', null=True, on_delete=models.DO_NOTHING)
 
